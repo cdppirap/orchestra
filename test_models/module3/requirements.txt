@@ -1,0 +1,3 @@
+speasy
+numpy
+pandas
