@@ -4,3 +4,6 @@ speasy1
 task_outputs
 venv
 venvs
+
+.pyc
+.swp
