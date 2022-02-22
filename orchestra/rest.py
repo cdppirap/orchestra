@@ -23,18 +23,20 @@ class ListModules(Resource):
     def get(self):
         #manager = ModuleManager()
         manager.load()
-        return [{"id":k,"name":manager.modules[k].name} for k in manager.modules]
+        return [{"id":k, "name":manager.modules[k].metadata["name"]} for k in manager.modules]
     def put(self):
         return self.get()
  
 class ShowModule(Resource):
     def get(self, module_id):
+        module_id = int(module_id)
         manager = ModuleManager()
-        if not module_id in manager:
+        if not int(module_id) in manager:
             return {"error":"Module does not exist"}
         module = manager.modules[module_id]
-        return manager.modules[module_id].get_data()
+        return manager.modules[module_id].metadata
     def put(self, module_id):
+        return self.get(module_id)
         manager = ModuleManager()
         if not module_id in manager:
             return {"error":"Module does not exist"}
@@ -42,6 +44,7 @@ class ShowModule(Resource):
 
 class RunModule(Resource):
     def get(self, module_id):
+        module_id = int(module_id)
         if not module_id in manager:
             return {"error":"Module does not exist"}
         # arguments

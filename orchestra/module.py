@@ -11,6 +11,7 @@ Module information :
     - files : list of files required by the module
 """
 import pickle as pkl
+import json
 import os
 from multiprocessing import Process
 
@@ -18,30 +19,44 @@ from orchestra.configuration import module_configuration
 from orchestra.environement import create_module_environement
 
 class ModuleInfo:
-    def __init__(self, name, requirements=None, files=[]):
-        self.name = name
-        self.requirements = requirements
-        self.files = files
+    def __init__(self, path):
+        self.path = path
+        self.metadata = {}
         self.env_id = None
-        self.description="Module"
+
+        # if the module name corresponds with a folder
+        if os.path.isdir(path):
+            # load from directory
+            metadata_path = os.path.join(path, "metadata.json")
+            if not os.path.exists(metadata_path):
+                raise Exception("Could not find metadata file {}".format(metadata_path))
+        elif path.startswith("https://"):
+            # clone the repository from github
+            module_name = os.path.basename(path).replace(".git","")
+            os.system("git clone -c http.sslVerify=0 {}".format(path))
+            metadata_path = os.path.join(module_name, "metadata.json")
+            self.path = module_name
+        else:
+            raise Exception("Could not load model name={}".format(name))
+
+        self.metadata = json.load(open(metadata_path, "r"))
     def is_valid(self):
-        if not self.requirements is None:
-            if not os.path.exists(self.requirements):
-                return False
-        if len(self.files):
-            return all([os.path.exists(f) for f in self.files])
-        return True
+        mandatory_fields = ["name", "description", "args", "hyperparameters", "output", "defaults", "install"]
+        return all([k in self.metadata for k in mandatory_fields])
     def __str__(self):
-        return "Module ({}, {}, {}, {})".format(self.name, self.requirements, self.files, self.env_id)
+        if "id" in self.metadata:
+            return "Module (id={}, name={})".format(self.metadata["id"], self.metadata["name"])
+        return "Module (name={})".format( self.metadata["name"])
+
     def get_data(self):
-        return {"name":self.name,\
-                "requirements":self.requirements,\
-                "files":self.files,\
-                "environement":self.env_id}
+        return self.metadata
     def activation_path(self):
         return os.path.join(self.env_id, "bin/activate")
-    def path(self):
+    def environement_path(self):
         return self.env_id
+    def set_id(self, id):
+        self.id = id
+        self.metadata["id"]=id
 
 class ModuleManager:
     def __init__(self):
@@ -49,29 +64,44 @@ class ModuleManager:
         self.task_counter = 0
         self.tasks={}
         self.load(module_configuration)
+    def clear(self):
+        self.modules = {}
+        self.save()
+        self.tasks = {}
+        self.task_counter = 0
         
     def load(self, modules_file=module_configuration):
         if not os.path.exists(modules_file):
             self.modules = {}
         else:
             self.modules = pkl.load(open(modules_file, "rb"))
+
     def __contains__(self, module):
         if isinstance(module, ModuleInfo):
             return module.name in self.modules
         return module in self.modules
+
     def __len__(self):
         return len(self.modules)
+
     def save(self):
         pkl.dump(self.modules, open(module_configuration, "wb"))
+    
+    def get_next_module_id(self):
+        i = len(self.modules)
+        while i in self.modules:
+            i+=1
+        return i
     def register_module(self, module):
         # create the environement for this module
-        module.env_id = create_module_environement(module.name, \
-                module.requirements,\
-                module.files)
-        self.modules[module.name] = module
+        module.set_id(self.get_next_module_id())
+        module.env_id = create_module_environement(module)
+        self.modules[module.id] = module
         self.save()
+
     def __getitem__(self, module_id):
         return self.modules[module_id]
+
     def remove_module(self, module):
         if isinstance(module, ModuleInfo):
             module = self.modules[module.name]
@@ -105,7 +135,7 @@ class ModuleManager:
         # activate the environement and execute module
         param_str = " ".join([k for k in list(run_args.values()) if k is not None])
         print("param str ", param_str)
-        cmd = "cd {} ; . bin/activate ; python -m {} {} {}; deactivate".format(module.path(),module.name,\
+        cmd = "cd {} ; . bin/activate ; python -m {} {} {}; deactivate".format(module.environement_path(),module.metadata["name"],\
                 os.path.abspath(output_dir), param_str)
         os.system(cmd)
         return 
