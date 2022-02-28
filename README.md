@@ -8,13 +8,13 @@ Each machine learning model is implemented as a `python module` that is installe
 ## REST API endpoints
 
 List of endpoints exposed by the REST API : 
-    - modules : retrieve a list of modules and assiciated metadata
-    - module/<int:module_id> : specific module metadata
-    - module/<int:module_id>/run [args] : request executing specified model with arguments supplied by user
-    - tasks : retrieve list of tasks and associated metadata
-    - task/<int:task_id> : specific task metadata (status, errors, output, ...)
-    - task/<int:task_id>/output : download task output
-    - task/<int:task_id>/kill : kill task
+* `/modules` : retrieve a list of modules and assiciated metadata
+* `/module/<int:module_id>` : specific module metadata
+* `/module/<int:module_id>/run [args]` : request executing specified model with arguments supplied by user
+* `/tasks` : retrieve list of tasks and associated metadata
+* `/task/<int:task_id>` : specific task metadata (status, errors, output, ...)
+* `/task/<int:task_id>/output` : download task output
+* `/task/<int:task_id>/kill` : kill task
 
 ## Installing a new module
 
@@ -48,4 +48,10 @@ python -m orchestra --register https://github.com/module_repository.git
 The user can list the modules that are installed with : 
 
 python -m orchestra --list
+
+### Deleting a module
+
+You can delete a module by passing its id with the `--remove` option :
+
+python -m orchestra --remove <module_id>
 
