@@ -2,6 +2,10 @@ import argparse
 import os
 
 from orchestra.module import ModuleInfo, ModuleManager
+
+def is_github_repository_address(url):
+    return url.startswith("https://") and url.endswith(".git")
+
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--list-modules", action="store_true", help="List modules")
@@ -14,16 +18,25 @@ if __name__=="__main__":
     args = parser.parse_args()
 
     mod_manager = ModuleManager()
+    # clear all modules and tasks
     if args.clear:
         os.system("rm -r module_environements/*")
         os.system("rm -r task_outputs/*")
         mod_manager.clear()
     # register a new model
     if args.register is not None:
-        ## check if the path corresponds to a folder
-        mod = ModuleInfo(args.register)
-        # check that module is well defined
-        mod_manager.register_module(mod)
+        if os.path.exists(args.register):
+            mod = ModuleInfo(args.register)
+            mod_manager.register_module(mod)
+        else:
+            if is_github_repository_address(args.register):
+                # clone the repository
+                os.system("git clone -c http.sslVerify=0 {}".format(args.register))
+                repository_folder = os.path.basename(args.register).replace(".git", "")
+                mod = ModuleInfo(repository_folder)
+                mod_manager.register_module(mod)
+                # delete files
+                os.system("rm -rf {}".format(repository_folder))
 
     if len(args.remove):
         for mod in args.remove:

@@ -7,3 +7,7 @@ venvs
 
 .pyc
 .swp
+__pycache__
+
+# test modules
+test_modules

@@ -13,6 +13,7 @@ Module information :
 import pickle as pkl
 import json
 import os
+import subprocess
 from multiprocessing import Process
 
 from orchestra.configuration import module_configuration
@@ -45,7 +46,7 @@ class ModuleInfo:
         return all([k in self.metadata for k in mandatory_fields])
     def __str__(self):
         if "id" in self.metadata:
-            return "Module (id={}, name={})".format(self.metadata["id"], self.metadata["name"])
+            return "Module (id={}, name={}, executable={})".format(self.metadata["id"], self.metadata["name"], self.metadata["install"]["executable"])
         return "Module (name={})".format( self.metadata["name"])
 
     def get_data(self):
@@ -57,6 +58,8 @@ class ModuleInfo:
     def set_id(self, id):
         self.id = id
         self.metadata["id"]=id
+    def get_executable(self):
+        return self.metadata["install"]["executable"]
 
 class ModuleManager:
     def __init__(self):
@@ -116,7 +119,7 @@ class ModuleManager:
     def start_task(self, module_id, **kwargs):
         if not module_id in self.modules:
             raise Exception("Module not found")
-        print("ModuleManager is starting a new task for module {}".format(module_id))
+        #print("ModuleManager is starting a new task for module {}".format(module_id))
         task_id = self.task_counter
         self.task_counter += 1
         output_dir = "task_outputs/task_{}".format(task_id)
@@ -130,14 +133,25 @@ class ModuleManager:
         return task_id
 
     def run_module(self, module_id, output_dir, run_args):
-        print(run_args)
+        print("Request run for module id={}, args={}".format(module_id, run_args))
         module = self[module_id]
         # activate the environement and execute module
-        param_str = " ".join([k for k in list(run_args.values()) if k is not None])
-        print("param str ", param_str)
-        cmd = "cd {} ; . bin/activate ; python -m {} {} {}; deactivate".format(module.environement_path(),module.metadata["name"],\
-                os.path.abspath(output_dir), param_str)
-        os.system(cmd)
+        #param_str = " ".join([k for k in list(run_args.values()) if k is not None])
+        param_str = " ".join([run_args["parameter"], run_args["start"], run_args["stop"]])
+        error_log = os.path.join(output_dir, "error.log")
+        cmd = "cd {} ; . bin/activate && python -m {} {} {} 2> {}  && deactivate".format(
+                module.environement_path(),
+                module.get_executable(),\
+                os.path.abspath(output_dir), 
+                param_str,
+                os.path.abspath(error_log))
+        # TODO : add error handeling
+        out = None
+        try:
+            out = subprocess.check_output(cmd, shell=True)
+            print("done without errors")
+        except Exception as e:
+            print("done with errors")
         return 
 
     def has_task(self, task_id):

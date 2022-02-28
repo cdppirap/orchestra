@@ -26,7 +26,7 @@ def create_module_environement(module):
         target_filename = os.path.join(env_dir, os.path.basename(f))
         os.system("cp -r {} {}".format(filename, target_filename))
     # save the requirements file
-    if "requirements" in module.metadata["install"]:
+    if "requirements" in module.metadata["install"] or "requirements.txt" in list(os.listdir(module.path)):
         requirements_file = os.path.join(module.path, "requirements.txt")
         save_requirements(requirements_file, "{}/requirements.txt".format(env_dir))
     # install requirements

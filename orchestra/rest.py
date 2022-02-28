@@ -66,28 +66,45 @@ class ListTasks(Resource):
         return self.get()
 
 class ShowTask(Resource):
-    def get_task_status(self, exitcode):
+    def get_task_status(self, task_id):
+        task=manager.get_task(task_id)
+        exitcode = task.exitcode
         if exitcode is None:
             return "running"
         if exitcode == 0:
+            if "error.log" in list(os.listdir("task_outputs/task_{}".format(task_id))):
+                emsg = self.read_error_log(task_id)
+                if len(emsg):
+                    return "error"
             return "done"
         return "error"
     def get_output_files(self, task_id):
         return list(os.listdir("task_outputs/task_{}".format(task_id)))
+    def read_error_log(self, task_id):
+        r=None
+        with open("task_outputs/task_{}/error.log".format(task_id), "r") as f:
+            r=f.read()
+        return r
     def get(self, task_id):
+        print("GETTING TASK")
         if not manager.has_task(task_id):
             return {"error":"Task {} not found".format(task_id)}
         # status flag
         tid = int(task_id)
         exitcode = manager.get_task(tid).exitcode
-        task_status = self.get_task_status(manager.get_task(tid).exitcode)
+        task_status = self.get_task_status(tid)
+        error=None
         if task_status!="done":
             output = None
+            if task_status=="error":
+                error = self.read_error_log(tid)
         else:
             output = self.get_output_files(tid)
+            output = [o for o in output if o!="error.log"]
+
         return {"status":task_status,\
                 "output":output,\
-                "error":exitcode,\
+                "error":error,\
                 "id":int(task_id)}
 
 class KillTask(Resource):

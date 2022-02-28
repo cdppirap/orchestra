@@ -1,51 +1,51 @@
 # Python virtual environement manager
 
-Orchestra is a collection of functions for creating virtual environements. It will be one of the
-components of AMDAs Machine Learning Pipeline. 
+Orchestra is a collection of tools for managing the backend part of AMDA's machine learning pipeline. Orchestra uses Flask to expose a REST API used by AMDA's internal components to retrieve
+information about the modules that are installed, create new prediction or training tasks, and more.
 
-The main object in this module is a daemon process that allows users to execute python modules in a
-protected environement. 
+Each machine learning model is implemented as a `python module` that is installed with all its requirements in a dedictated virtual environement. 
 
-## Endpoints
+## REST API endpoints
 
-The list of endpoints : 
-    - modules : list of modules
-    - module/<module_id> : module information
-    - module/<module_id>/run [args] : execute a module
-    - tasks : list of tasks
-    - task/<task_id> : task information
-    - task/<task_id>/output : get task output
-    - task/<task_id>/kill : kill task
+List of endpoints exposed by the REST API : 
+    - modules : retrieve a list of modules and assiciated metadata
+    - module/<int:module_id> : specific module metadata
+    - module/<int:module_id>/run [args] : request executing specified model with arguments supplied by user
+    - tasks : retrieve list of tasks and associated metadata
+    - task/<int:task_id> : specific task metadata (status, errors, output, ...)
+    - task/<int:task_id>/output : download task output
+    - task/<int:task_id>/kill : kill task
 
-## Installing modules
-This is the procedure that needs to be followed to install a new module.
+## Installing a new module
 
-python -m orchestra --register <module_name> --requirements requirements.txt --files <file_1> ... <file_n>
+Modules are installed by passing the `--register` parameter to `orchestra` with a path pointing to either : 
+    - a folder containing a python module
+    - a github repository containing a python module
+In both cases the root of the target folder must contain a `metadata.json` file. This file contains all metadata describing the model as well as a list of files required to create a virtual environement 
+(requirements, files, etc...).
 
+### From folder
 
+The module is located in `/path/to/module/Model`. The `/path/to/module` looks like :
+    - metadata.json
+    - requirements.txt
+    - Model
+        - __init__.py
+        - ...
 
-## REST client
+The module is installed with : 
 
-Orchestra exposes a REST API that can be used to request predictions of the models installed.
-The required information. 
-        model_id
-        parameter_id
-        start_time
-        stop_time
+python -m orchestra --register /path/to/module
 
-Registration of a new model. Files needed are the script.py and requirements.txt files. The register
-command adds the script, associating with it a unique id and some metadata. 
-	orchestra --register script.py requirements.txt
+### From GitHub
 
-List the models installed : 
-	orchestra --list
-	Model id
-        --------
-        model_1, script.py, requirements.txt
-        ...
-        model_n, script_n.py, requirements.txt
+The module is stored in a GitHub repository, install it with : 
 
-## Running the models
-Orchestra uses docker containers to execute code. When a module is registered an image is created.
+python -m orchestra --register https://github.com/module_repository.git
 
+### List of modules
+
+The user can list the modules that are installed with : 
+
+python -m orchestra --list
 
