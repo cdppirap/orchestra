@@ -16,7 +16,9 @@ import os
 import subprocess
 from multiprocessing import Process
 
-from orchestra.configuration import module_configuration
+from orchestra.errors import *
+from orchestra.configuration import *
+
 from orchestra.environement import create_module_environement
 
 class ModuleInfo:
@@ -39,8 +41,8 @@ class ModuleInfo:
             self.path = module_name
         else:
             raise Exception("Could not load model name={}".format(name))
-
-        self.metadata = json.load(open(metadata_path, "r"))
+        with open(metadata_path,"r") as f:
+            self.metadata = json.load(f)
     def is_valid(self):
         mandatory_fields = ["name", "description", "args", "hyperparameters", "output", "defaults", "install"]
         return all([k in self.metadata for k in mandatory_fields])
@@ -77,54 +79,64 @@ class ModuleManager:
         if not os.path.exists(modules_file):
             self.modules = {}
         else:
-            self.modules = pkl.load(open(modules_file, "rb"))
+            with open(modules_file, "rb") as f:
+                self.modules = pkl.load(f)
 
     def __contains__(self, module):
         if isinstance(module, ModuleInfo):
-            return module.name in self.modules
+            return module.id in self.modules
         return module in self.modules
 
     def __len__(self):
         return len(self.modules)
 
     def save(self):
-        pkl.dump(self.modules, open(module_configuration, "wb"))
+        with open(module_configuration, "wb") as f:
+            pkl.dump(self.modules, f)
     
     def get_next_module_id(self):
         i = len(self.modules)
         while i in self.modules:
             i+=1
         return i
-    def register_module(self, module):
+    def register_module(self, module, verbose=True):
         # create the environement for this module
         module.set_id(self.get_next_module_id())
-        module.env_id = create_module_environement(module)
+        module.env_id = create_module_environement(module, verbose=verbose)
         self.modules[module.id] = module
         self.save()
+        return module.id
 
     def __getitem__(self, module_id):
+        if not module_id in self.modules:
+            raise ModuleIDNotFound(module_id)
+            #raise Exception("Could not find module id={}".format(module_id))
         return self.modules[module_id]
 
     def remove_module(self, module):
         if isinstance(module, ModuleInfo):
-            module = self.modules[module.name]
+            module = self.modules[module.id]
         else:
             module = self.modules[module]
         # remove the virtual environement
-        os.system("rm -r {}".format(module.env_id))
+        cmd = "rm -rf {}".format(module.env_id)
+        os.system(cmd)
         # remove the module from the list
-        del self.modules[module.name]
+        del self.modules[module.id]
         self.save()
-
+    
+    def get_task_dir(self, task_id):
+        return os.path.join(task_directory, "task_{}".format(task_id))
     def start_task(self, module_id, **kwargs):
         if not module_id in self.modules:
-            raise Exception("Module not found")
+            raise ModuleIDNotFound(module_id)
+            #raise Exception("Module id={} not found".format(module_id))
         #print("ModuleManager is starting a new task for module {}".format(module_id))
         task_id = self.task_counter
         self.task_counter += 1
-        output_dir = "task_outputs/task_{}".format(task_id)
+        output_dir = self.get_task_dir(task_id)
         if os.path.exists(output_dir):
-            os.system("rm -r {}".format(output_dir))
+            os.system("rm -rf {}".format(output_dir))
         os.mkdir(output_dir)
 
         process = Process(target = self.run_module, args = (module_id,output_dir,kwargs,))
@@ -132,8 +144,9 @@ class ModuleManager:
         self.tasks[task_id].start()
         return task_id
 
-    def run_module(self, module_id, output_dir, run_args):
-        print("Request run for module id={}, args={}".format(module_id, run_args))
+    def run_module(self, module_id, output_dir, run_args, verbose=False):
+        if verbose:
+            print("Request run for module id={}, args={}".format(module_id, run_args))
         module = self[module_id]
         # activate the environement and execute module
         #param_str = " ".join([k for k in list(run_args.values()) if k is not None])
@@ -148,10 +161,10 @@ class ModuleManager:
         # TODO : add error handeling
         out = None
         try:
-            out = subprocess.check_output(cmd, shell=True)
-            print("done without errors")
+            out = subprocess.check_output(cmd, shell=True, stderr=subprocess.DEVNULL)
         except Exception as e:
-            print("done with errors")
+            #raise ModuleRunError(e)
+            raise Exception("Module run error {}".format(e))
         return 
 
     def has_task(self, task_id):
@@ -167,29 +180,6 @@ class ModuleManager:
         task = self.tasks[task_id]
         task.kill()
         del self.tasks[task_id]
-        os.system("rm -r task_outputs/task_{}".format(task_id))
+        task_output_path = os.path.join(task_outputs, "task_{}".format(task_id))
+        os.system("rm -rf {}".format(task_output_path))
 
-
-
-
-if __name__=="__main__":
-    print("Module manager tests")
-    module_manager = ModuleManager()
-
-    # create a new module
-    m = ModuleInfo(name="module1", requirements=["numpy"])
-    print(m, type(m), hasattr(m, "get_data"))
-
-    # check if module exists
-    if m in module_manager:
-        print("Removing module")
-        module_manager.remove_module(m)
-
-    # register the new module
-    module_manager.register_module(m)
-
-    print("Number of registered modules : {}".format(len(module_manager)))
-
-    for k in module_manager.modules:
-        print(module_manager.modules[k])
-        print(module_manager.modules[k].get_data())

@@ -1,6 +1,7 @@
 import argparse
 import os
 
+import orchestra.configuration as config
 from orchestra.module import ModuleInfo, ModuleManager
 
 def is_github_repository_address(url):
@@ -20,8 +21,8 @@ if __name__=="__main__":
     mod_manager = ModuleManager()
     # clear all modules and tasks
     if args.clear:
-        os.system("rm -r module_environements/*")
-        os.system("rm -r task_outputs/*")
+        os.system("rm -rf {}/*".format(config.environement_directory))
+        os.system("rm -rf {}/*".format(config.task_directory))
         mod_manager.clear()
     # register a new model
     if args.register is not None:
@@ -40,8 +41,12 @@ if __name__=="__main__":
 
     if len(args.remove):
         for mod in args.remove:
-            mod_manager.remove_module(mod)
+            try:
+                index = int(mod)
+            except:
+                raise Exception("Expected integer module id, got '{}' (type={})".format(mod, type(mod)))
+            mod_manager.remove_module(int(mod))
     if args.list_modules:
         print("Registered modules : {}".format(len(mod_manager)))
         for m in mod_manager.modules:
-            print(mod_manager.modules[m])
+            print("{}. {}".format(mod,mod_manager.modules[m]))

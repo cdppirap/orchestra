@@ -2,8 +2,10 @@
 
 Need a list of environements.
 """
+import sys
 import os
 import pickle as pkl
+import subprocess
 
 from orchestra.configuration import environement_directory
 
@@ -15,12 +17,35 @@ def save_requirements(requirements, filename):
         if os.path.exists(requirements):
             os.system("cp {} {}".format(requirements, filename))
 
-def create_module_environement(module):
-    print("Create module environement for {}".format(module))
+def create_module_environement(module, verbose=True):
+    if verbose:
+        print("Create module environement for {}".format(module))
     env_dir = os.path.join(environement_directory, str(module.id))
     # create the clean virtual environement
     os.system("python3 -m venv {}".format(env_dir))
     # move files into virtual environement
+    if verbose:
+        run_procedure("Move files", move_files, module)
+    else:
+        move_files(module)
+    # install requirements
+    if os.path.exists("{}/requirements.txt".format(env_dir)):
+        if verbose:
+            run_procedure("Installing requirements", install_requirements, module)
+        else:
+            install_requirements(module)
+    return env_dir
+
+def run_procedure(title, func, *args):
+    sys.stdout.write(title+"...")
+    sys.stdout.flush()
+    ans = func(*args)
+    sys.stdout.write("done\n")
+    sys.stdout.flush()
+    return ans
+
+def move_files(module):
+    env_dir = os.path.join(environement_directory, str(module.id))
     for f in module.metadata["install"]["files"]:
         filename = os.path.join(module.path, f)
         target_filename = os.path.join(env_dir, os.path.basename(f))
@@ -29,11 +54,18 @@ def create_module_environement(module):
     if "requirements" in module.metadata["install"] or "requirements.txt" in list(os.listdir(module.path)):
         requirements_file = os.path.join(module.path, "requirements.txt")
         save_requirements(requirements_file, "{}/requirements.txt".format(env_dir))
-    # install requirements
-    if os.path.exists("{}/requirements.txt".format(env_dir)):
-        print("Installing requirements")
-        os.system(". {}/bin/activate ; pip install --upgrade pip ; pip install -r {}/requirements.txt ; deactivate".format(env_dir,env_dir))
+ 
+
+def install_requirements(module):
+    env_dir = os.path.join(environement_directory, str(module.id))
+    cmd = ". {}/bin/activate ; pip install --upgrade pip ; pip install -r {}/requirements.txt ; deactivate".format(env_dir,env_dir)
+    try:
+        output = subprocess.check_output([cmd], shell=True, stderr=subprocess.DEVNULL)
+    except Exception as e:
+        raise Exception("Failed to install requirements for module {}".format(module))
+    #os.system(". {}/bin/activate ; pip install --upgrade pip ; pip install -r {}/requirements.txt ; deactivate".format(env_dir,env_dir))
     return env_dir
+
 
 
 def run_module(name, cmd):
@@ -42,21 +74,4 @@ def run_module(name, cmd):
                {} ;\
                deactivate".format(name, cmd))
 
-if __name__=="__main__":
-    #remove_module("hahah")
-    #exit()
-    try:
-        register_module("speasy1", "speasy1", files=["test_models/spz.py"], requirements=["speasy"])
-    except:
-        remove_module("speasy1")
-        register_module("speasy1", "speasy1", files=["test_models/spz.py"], requirements=["speasy"])
-
-
-
-    print("Registered modules : ")
-    modules = load_modules()
-    for m in modules:
-        print(m)
-
-    run_module("speasy1", "python spz.py amda/imf 2015-01-01 2015-01-02")
 

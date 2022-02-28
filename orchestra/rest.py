@@ -30,20 +30,21 @@ class ListModules(Resource):
 class ShowModule(Resource):
     def get(self, module_id):
         module_id = int(module_id)
-        manager = ModuleManager()
+        manager.load()
         if not int(module_id) in manager:
             return {"error":"Module does not exist"}
         module = manager.modules[module_id]
         return manager.modules[module_id].metadata
     def put(self, module_id):
         return self.get(module_id)
-        manager = ModuleManager()
+        manager.load()
         if not module_id in manager:
             return {"error":"Module does not exist"}
         return manager.modules[module_id].get_data()
 
 class RunModule(Resource):
     def get(self, module_id):
+        manager.load()
         module_id = int(module_id)
         if not module_id in manager:
             return {"error":"Module does not exist"}
@@ -79,7 +80,11 @@ class ShowTask(Resource):
             return "done"
         return "error"
     def get_output_files(self, task_id):
-        return list(os.listdir("task_outputs/task_{}".format(task_id)))
+        a=list(os.listdir("task_outputs/task_{}".format(task_id)))
+        if "error.log" in a:
+            if os.path.getsize(os.path.join(manager.get_task_dir(task_id), "error.log"))==0:
+                a.remove("error.log")
+        return a
     def read_error_log(self, task_id):
         r=None
         with open("task_outputs/task_{}/error.log".format(task_id), "r") as f:
@@ -121,6 +126,10 @@ class TaskOutput(Resource):
             output_dir = "task_outputs/task_{}".format(task_id)
             output_dir = os.path.abspath(output_dir)
             output_files = list(os.listdir(output_dir))
+            if "error.log" in output_files:
+                # get error log size
+                if os.path.getsize(os.path.join(output_dir, "error.log"))==0:
+                    output_files.remove("error.log")
             if len(output_files)==1:
                 content = open(os.path.join(output_dir,output_files[0]), "rb").read().decode("utf-8")
                 return send_from_directory(output_dir, output_files[0], as_attachment=True)
@@ -129,7 +138,7 @@ class TaskOutput(Resource):
                 cmd = "cd {} ; zip output.zip {}".format(output_dir, " ".join(output_files))
                 os.system(cmd)
                 r=send_from_directory(output_dir, "output.zip", as_attachment=True)
-                os.system("rm -r {}/output.zip".format(output_dir))
+                os.system("rm -rf {}/output.zip".format(output_dir))
                 return r
         return None
 
@@ -145,5 +154,6 @@ api.add_resource(KillTask, "/task/<task_id>/kill")
 api.add_resource(TaskOutput, "/task/<task_id>/output")
 
 if __name__=="__main__":
-    app.run(debug=True)
+    from orchestra.configuration import rest_host, rest_port
+    app.run(host=rest_host, port=rest_port, debug=True)
 
