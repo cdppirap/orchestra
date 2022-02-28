@@ -89,9 +89,9 @@ def start_rest_server():
     app.run(host=rest_host, port=rest_port, debug=False)
 
     new_stdout.close()
+
 class TestRESTAPI(unittest.TestCase):
     def test_rest_api(self):
-        from orchestra.rest import app
         from multiprocessing import Process
         import json
         import urllib
