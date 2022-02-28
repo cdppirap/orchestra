@@ -19,39 +19,45 @@ List of endpoints exposed by the REST API :
 ## Installing a new module
 
 Modules are installed by passing the `--register` parameter to `orchestra` with a path pointing to either : 
-    - a folder containing a python module
-    - a github repository containing a python module
+* a folder containing a python module
+* a github repository containing a python module
+
 In both cases the root of the target folder must contain a `metadata.json` file. This file contains all metadata describing the model as well as a list of files required to create a virtual environement 
 (requirements, files, etc...).
 
 ### From folder
 
 The module is located in `/path/to/module/Model`. The `/path/to/module` looks like :
-    - metadata.json
-    - requirements.txt
-    - Model
-        - __init__.py
-        - ...
+* metadata.json
+* requirements.txt
+* Model
+    * __init__.py
+    * ...
 
 The module is installed with : 
-
+``` python
 python -m orchestra --register /path/to/module
+```
 
 ### From GitHub
 
 The module is stored in a GitHub repository, install it with : 
-
+``` python
 python -m orchestra --register https://github.com/module_repository.git
+```
 
 ### List of modules
 
 The user can list the modules that are installed with : 
-
+``` python
 python -m orchestra --list
+```
 
 ### Deleting a module
 
 You can delete a module by passing its id with the `--remove` option :
-
+``` python
 python -m orchestra --remove <module_id>
+```
+
 
