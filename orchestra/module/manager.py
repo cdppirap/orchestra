@@ -121,7 +121,7 @@ class ModuleManager:
         #param_str = " ".join([k for k in list(run_args.values()) if k is not None])
         param_str = " ".join([run_args["parameter"], run_args["start"], run_args["stop"]])
         error_log = os.path.join(output_dir, "error.log")
-        cmd = "cd {} ; . bin/activate && python -m {} {} {} 2> {}  && deactivate".format(
+        cmd = "cd {} && . bin/activate && python -m {} {} {} 2> {}  && deactivate".format(
                 module.environment_path(),
                 module.get_executable(),\
                 os.path.abspath(output_dir), 

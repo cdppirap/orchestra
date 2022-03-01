@@ -66,23 +66,9 @@ class ModuleEnvironment:
     @staticmethod
     def install_requirements(module):
         env_dir = os.path.join(config.environment_directory, str(module.id))
-        cmd = ". {}/bin/activate ; pip install --upgrade pip ; pip install -r {}/requirements.txt ; deactivate".format(env_dir,env_dir)
+        cmd = ". {}/bin/activate && pip install --upgrade pip && pip install -r {}/requirements.txt && deactivate".format(env_dir,env_dir)
         try:
-            new_stdout=open("temp_stdout.log","w")
-            new_stderr=open("temp_stderr.log","w")
-            output = subprocess.check_output([cmd], shell=True, stderr=new_stderr)
-            new_stdout.close()
-            new_stderr.close()
-
-            f = open("temp_stderr.log","r")
-            d=f.read()
-            f.close()
-            os.system("rm -rf temp_stdout.log &> /dev/null")
-            os.system("rm -rf temp_stderr.log &> /dev/null")
-            if len(d):
-                print("AAAAAAAAAAAAAAAA",d)
-                raise Exception("Install requirements error")
-            #output = subprocess.check_output([cmd], shell=True, stderr=subprocess.DEVNULL)
+            output = subprocess.check_output([cmd], shell=True, stderr=subprocess.DEVNULL)
         except Exception as e:
             raise Exception("Failed to install requirements for module {}\n{}".format(module,e))
         return env_dir
