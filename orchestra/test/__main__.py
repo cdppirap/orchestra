@@ -44,15 +44,15 @@ class TestModuleManager(unittest.TestCase):
         mod = self.manager[module_id]
         self.assertIsNotNone(mod)
         self.assertEqual(module_id, mod.id)
-        # check that the modules virtual environement exists
-        environement_path = mod.environement_path()
-        self.assertTrue(os.path.exists(environement_path))
+        # check that the modules virtual environment exists
+        environment_path = mod.environment_path()
+        self.assertTrue(os.path.exists(environment_path))
         self.assertTrue(module_id in self.manager)
         self.assertTrue(mod in self.manager)
 
         # remove the module
         self.manager.remove_module(module_id)
-        self.assertFalse(os.path.exists(environement_path))
+        self.assertFalse(os.path.exists(environment_path))
         self.assertFalse(module_id in self.manager)
         self.assertEqual(len(self.manager), n)
         with self.assertRaises(ModuleIDNotFound):
@@ -206,7 +206,9 @@ class TestRESTAPI(unittest.TestCase):
         rest_process.join()
 
         # remove the module
+        print("remove module {}".format(module_id))
         manager.remove_module(module_id)
+        manager.remove_task(task_id)
 
 if __name__=="__main__":
     unittest.main()

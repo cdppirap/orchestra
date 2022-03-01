@@ -35,7 +35,7 @@ class ModuleInfo:
         return self.metadata
     def activation_path(self):
         return os.path.join(self.env_id, "bin/activate")
-    def environement_path(self):
+    def environment_path(self):
         return self.env_id
     def set_id(self, id):
         self.id = id

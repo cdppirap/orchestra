@@ -5,7 +5,7 @@
 module_file_path = "modules.pkl"
 
 # virtual environement directory
-environement_directory = "module_environements"
+environment_directory = "module_environments"
 
 # task output directory
 task_directory = "task_outputs"

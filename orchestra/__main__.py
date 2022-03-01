@@ -22,7 +22,7 @@ if __name__=="__main__":
     mod_manager = ModuleManager()
     # clear all modules and tasks
     if args.clear:
-        os.system("rm -rf {}/*".format(config.environement_directory))
+        os.system("rm -rf {}/*".format(config.environment_directory))
         os.system("rm -rf {}/*".format(config.task_directory))
         mod_manager.clear()
     # register a new model

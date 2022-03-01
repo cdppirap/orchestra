@@ -1,13 +1,13 @@
-"""Creating environements
+"""Creating environments
 
-Need a list of environements.
+Need a list of environments.
 """
 import sys
 import os
 import pickle as pkl
 import subprocess
 
-from orchestra.configuration import environement_directory
+from orchestra.configuration import environment_directory
 
 def save_requirements(requirements, filename):
     if isinstance(requirements, list):
@@ -17,13 +17,13 @@ def save_requirements(requirements, filename):
         if os.path.exists(requirements):
             os.system("cp {} {}".format(requirements, filename))
 
-def create_module_environement(module, verbose=True):
+def create_module_environment(module, verbose=True):
     if verbose:
-        print("Create module environement for {}".format(module))
-    env_dir = os.path.join(environement_directory, str(module.id))
-    # create the clean virtual environement
+        print("Create module environment for {}".format(module))
+    env_dir = os.path.join(environment_directory, str(module.id))
+    # create the clean virtual environment
     os.system("python3 -m venv {}".format(env_dir))
-    # move files into virtual environement
+    # move files into virtual environment
     if verbose:
         run_procedure("Move files", move_files, module)
     else:
@@ -45,7 +45,7 @@ def run_procedure(title, func, *args):
     return ans
 
 def move_files(module):
-    env_dir = os.path.join(environement_directory, str(module.id))
+    env_dir = os.path.join(environment_directory, str(module.id))
     for f in module.metadata["install"]["files"]:
         filename = os.path.join(module.path, f)
         target_filename = os.path.join(env_dir, os.path.basename(f))
@@ -57,7 +57,7 @@ def move_files(module):
  
 
 def install_requirements(module):
-    env_dir = os.path.join(environement_directory, str(module.id))
+    env_dir = os.path.join(environment_directory, str(module.id))
     cmd = ". {}/bin/activate ; pip install --upgrade pip ; pip install -r {}/requirements.txt ; deactivate".format(env_dir,env_dir)
     try:
         output = subprocess.check_output([cmd], shell=True, stderr=subprocess.DEVNULL)

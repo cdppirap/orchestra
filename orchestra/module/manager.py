@@ -5,7 +5,7 @@ import subprocess
 
 from orchestra.module.info import ModuleInfo
 from orchestra.errors import ModuleIDNotFound
-from orchestra.environement import create_module_environement
+from orchestra.environment import create_module_environment
 
 import orchestra.configuration as config
 
@@ -57,9 +57,9 @@ class ModuleManager:
     def register_module(self, module, verbose=True):
         """Register a module, returns the module id
         """
-        # create the environement for this module
+        # create the environment for this module
         module.set_id(self.get_next_module_id())
-        module.env_id = create_module_environement(module, verbose=verbose)
+        module.env_id = create_module_environment(module, verbose=verbose)
         self.modules[module.id] = module
         self.save()
         return module.id
@@ -77,7 +77,7 @@ class ModuleManager:
             module = self.modules[module.id]
         else:
             module = self.modules[module]
-        # remove the virtual environement
+        # remove the virtual environment
         self.forcefully_remove_directory(module.env_id)
         # remove the module from the list
         del self.modules[module.id]
@@ -115,12 +115,12 @@ class ModuleManager:
         if verbose:
             print("Request run for module id={}, args={}".format(module_id, run_args))
         module = self[module_id]
-        # activate the environement and execute module
+        # activate the environment and execute module
         #param_str = " ".join([k for k in list(run_args.values()) if k is not None])
         param_str = " ".join([run_args["parameter"], run_args["start"], run_args["stop"]])
         error_log = os.path.join(output_dir, "error.log")
         cmd = "cd {} ; . bin/activate && python -m {} {} {} 2> {}  && deactivate".format(
-                module.environement_path(),
+                module.environment_path(),
                 module.get_executable(),\
                 os.path.abspath(output_dir), 
                 param_str,
@@ -156,4 +156,8 @@ class ModuleManager:
         del self.tasks[task_id]
         task_output_path = os.path.join(task_outputs, "task_{}".format(task_id))
         self.forcefully_remove_directory(task_output_path)
+    def remove_task(self, task_id):
+        """Remove a task directory, the task should be done
+        """
+        self.forcefully_remove_directory(self.get_task_dir(task_id))
 
