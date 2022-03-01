@@ -201,7 +201,8 @@ class TestRESTAPI(unittest.TestCase):
                     self.assertTrue(conteont, content)
             
         # kill process
-        rest_process.kill()
+        #rest_process.kill()
+        rest_process.terminate()
         rest_process.join()
 
         # remove the module
