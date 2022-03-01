@@ -2,7 +2,7 @@
 """
 
 # modules configuration , list of registered modules
-module_configuration = "modules.pkl"
+module_file_path = "modules.pkl"
 
 # virtual environement directory
 environement_directory = "module_environements"

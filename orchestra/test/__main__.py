@@ -1,15 +1,26 @@
 import unittest
 import os
+import urllib.request
+from multiprocessing import Process
+import json
+import time
+import sys
+ 
 
 from orchestra.errors import *
 from orchestra.configuration import *
-from orchestra.module import ModuleInfo, ModuleManager
+from orchestra.module.info import ModuleInfo
+from orchestra.module.manager import ModuleManager
 
 class TestModuleManager(unittest.TestCase):
     def __init__(self, *args, **kwargs):
+        """Test the ModuleManager implementation
+        """
         super().__init__(*args, **kwargs)
         self.manager = ModuleManager()
     def test_manager(self):
+        """Test that the manager is well instanciated
+        """
         self.assertIsNotNone(self.manager)
         # check that the module container is a dictionary
         self.assertTrue(isinstance(self.manager.modules, dict))
@@ -18,6 +29,8 @@ class TestModuleManager(unittest.TestCase):
         self.assertTrue(isinstance(n, int))
         self.assertTrue(n>=0)
     def test_register_module_from_folder(self):
+        """Test registering module from a folder
+        """
         n = len(self.manager)
         # install a module
         module_path = "test_modules/module0"
@@ -44,12 +57,15 @@ class TestModuleManager(unittest.TestCase):
         self.assertEqual(len(self.manager), n)
         with self.assertRaises(ModuleIDNotFound):
             m = self.manager[module_id]
-
     def test_register_invalid_module(self):
+        """Test registering an invalid module
+        """
         module_path = "module_that_does_not_exist"
         with self.assertRaises(Exception):
             m = ModuleInfo(module_path)
     def test_run_module(self):
+        """Test running a module
+        """
         # register module1
         module_path = "test_modules/module0"
         module = ModuleInfo(module_path)
@@ -72,6 +88,8 @@ class TestModuleManager(unittest.TestCase):
         self.manager.remove_module(module_id)
 
 class TestModuleInfo(unittest.TestCase):
+    """Test module info implementation
+    """
     def test_load_from_folder(self):
         module_path = "test_modules/module0"
         m = ModuleInfo(module_path)
@@ -79,9 +97,10 @@ class TestModuleInfo(unittest.TestCase):
 
 
 def start_rest_server():
+    """Start the REST server in a separate process
+    """
     from orchestra.configuration import rest_host, rest_port
     from orchestra.rest import app
-    import sys
     new_stdout = open("temp.out", "w")
     sys.stdout = new_stdout
     sys.stderr = new_stdout
@@ -89,14 +108,21 @@ def start_rest_server():
     app.run(host=rest_host, port=rest_port, debug=False)
 
     new_stdout.close()
+    os.system("rm -rf temp.out")
 
 class TestRESTAPI(unittest.TestCase):
+    """Test the REST API implementation
+    """
     def test_rest_api(self):
-        from multiprocessing import Process
-        import json
-        import urllib
-        import time
-        import sys
+        """Test REST API
+        """
+        from orchestra.rest.urls import get_rest_modules_url,\
+                get_rest_module_info_url,\
+                get_rest_module_run_url,\
+                get_rest_tasks_url,\
+                get_rest_task_info_url,\
+                get_rest_task_output_url
+
         # start rest in another thread
         #rest_process = Process(target=app.run, kwargs={"debug":False})
         rest_process = Process(target=start_rest_server)
@@ -107,7 +133,7 @@ class TestRESTAPI(unittest.TestCase):
         time.sleep(1)
 
         # get list of modules
-        url = "http://127.0.0.1:5000/modules"
+        url = get_rest_modules_url()
         with urllib.request.urlopen(url, timeout=10) as f:
             self.assertIsNotNone(f)
             content = json.loads(f.read())
@@ -121,7 +147,7 @@ class TestRESTAPI(unittest.TestCase):
         module_info = ModuleInfo(module_path)
         module_id = manager.register_module(module_info, verbose=False)
         
-        url = "http://127.0.0.1:5000/module/{}".format(module_id)
+        url = get_rest_module_info_url(module_id)
         with urllib.request.urlopen(url, timeout=10) as f:
             self.assertIsNotNone(f)
             content = json.loads(f.read())
@@ -131,7 +157,9 @@ class TestRESTAPI(unittest.TestCase):
                 self.assertTrue(module_info.metadata[field] == content[field])
 
         # run the module
-        url = "http://127.0.0.1:5000/module/{}/run?parameter=imf&start=2000-01-01T00:00:00&stop=2000-01-02T00:00:00".format(module_id)
+        url = get_rest_module_run_url(module_id, **{"parameter":"imf",
+                                            "start":"2000-01-01T00:00:00",
+                                            "stop":"2000-01-02T00:00:00"})
         task_id = None
         with urllib.request.urlopen(url, timeout=10) as f:
             self.assertIsNotNone(f)
@@ -144,7 +172,7 @@ class TestRESTAPI(unittest.TestCase):
         time.sleep(1)
 
         # get the status of the module run
-        url = "http://127.0.0.1:5000/task/{}".format(task_id)
+        url = get_rest_task_info_url(task_id)
         task_data = None
         with urllib.request.urlopen(url, timeout=10) as f:
             self.assertIsNotNone(f)
@@ -156,7 +184,7 @@ class TestRESTAPI(unittest.TestCase):
             task_data = content
 
         # get the task output
-        url = "http://127.0.0.1:5000/task/{}/output".format(task_id)
+        url = get_rest_task_output_url(task_id)
         with urllib.request.urlopen(url, timeout=10) as f:
             task_files = task_data["output"]
             content = f.read()

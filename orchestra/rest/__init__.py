@@ -8,11 +8,13 @@ Endpoints : - modules : list of installed modules
 """
 import os
 
-from orchestra.module import ModuleInfo, ModuleManager
-
 from flask import Flask, request, send_from_directory
 from flask_restful import Resource, Api, reqparse
 
+from orchestra.module.info import ModuleInfo
+from orchestra.module.manager import ModuleManager
+
+import orchestra.configuration as config
 
 manager = ModuleManager()
 
@@ -153,7 +155,4 @@ api.add_resource(ShowTask, "/task/<task_id>")
 api.add_resource(KillTask, "/task/<task_id>/kill")
 api.add_resource(TaskOutput, "/task/<task_id>/output")
 
-if __name__=="__main__":
-    from orchestra.configuration import rest_host, rest_port
-    app.run(host=rest_host, port=rest_port, debug=True)
 

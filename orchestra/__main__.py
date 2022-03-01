@@ -2,7 +2,8 @@ import argparse
 import os
 
 import orchestra.configuration as config
-from orchestra.module import ModuleInfo, ModuleManager
+from orchestra.module.info import ModuleInfo
+from orchestra.module.manager import ModuleManager
 
 def is_github_repository_address(url):
     return url.startswith("https://") and url.endswith(".git")
@@ -49,4 +50,4 @@ if __name__=="__main__":
     if args.list_modules:
         print("Registered modules : {}".format(len(mod_manager)))
         for m in mod_manager.modules:
-            print("{}. {}".format(mod,mod_manager.modules[m]))
+            print("{}. {}".format(m,mod_manager.modules[m]))
