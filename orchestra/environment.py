@@ -38,7 +38,6 @@ class ModuleEnvironment:
             ModuleEnvironment.move_files(module)
         # install requirements
         if os.path.exists("{}/requirements.txt".format(env_dir)):
-            os.system("cat {}/requirements.txt".format(env_dir))
             if verbose:
                 run_procedure("Installing requirements", ModuleEnvironment.install_requirements, module)
             else:
