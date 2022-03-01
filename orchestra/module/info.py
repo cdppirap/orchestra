@@ -5,7 +5,8 @@ class ModuleInfo:
     def __init__(self, path):
         self.path = path
         self.metadata = {}
-        self.env_id = None
+        #self.env_id = None
+        self.venv = None
 
         # if the module name corresponds with a folder
         if os.path.isdir(path):
@@ -34,9 +35,10 @@ class ModuleInfo:
     def get_data(self):
         return self.metadata
     def activation_path(self):
-        return os.path.join(self.env_id, "bin/activate")
+        r=self.venv.activation_path()
+        return r
     def environment_path(self):
-        return self.env_id
+        return self.venv.path
     def set_id(self, id):
         self.id = id
         self.metadata["id"]=id

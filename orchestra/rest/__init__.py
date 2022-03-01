@@ -95,7 +95,6 @@ class ShowTask(Resource):
             r=f.read()
         return r
     def get(self, task_id):
-        print("GETTING TASK")
         if not manager.has_task(task_id):
             return {"error":"Task {} not found".format(task_id)}
         # status flag
