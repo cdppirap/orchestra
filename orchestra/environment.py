@@ -78,6 +78,8 @@ class ModuleEnvironment:
             f = open("temp_stderr.log","r")
             d=f.read()
             f.close()
+            os.system("rm -rf temp_stdout.log &> /dev/null")
+            os.system("rm -rf temp_stderr.log &> /dev/null")
             if len(d):
                 raise Exception("Install requirements error")
             #output = subprocess.check_output([cmd], shell=True, stderr=subprocess.DEVNULL)

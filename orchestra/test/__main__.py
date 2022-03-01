@@ -206,7 +206,6 @@ class TestRESTAPI(unittest.TestCase):
         rest_process.join()
 
         # remove the module
-        print("remove module {}".format(module_id))
         manager.remove_module(module_id)
         manager.remove_task(task_id)
 

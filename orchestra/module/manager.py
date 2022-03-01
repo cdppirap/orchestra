@@ -5,7 +5,7 @@ import subprocess
 
 from orchestra.module.info import ModuleInfo
 from orchestra.errors import ModuleIDNotFound
-from orchestra.environment import create_module_environment
+from orchestra.environment import ModuleEnvironment
 
 import orchestra.configuration as config
 
@@ -59,7 +59,8 @@ class ModuleManager:
         """
         # create the environment for this module
         module.set_id(self.get_next_module_id())
-        module.env_id = create_module_environment(module, verbose=verbose)
+        #module.env_id = create_module_environment(module, verbose=verbose)
+        module.venv = ModuleEnvironment.create(module, verbose=verbose)
         self.modules[module.id] = module
         self.save()
         return module.id
@@ -78,7 +79,8 @@ class ModuleManager:
         else:
             module = self.modules[module]
         # remove the virtual environment
-        self.forcefully_remove_directory(module.env_id)
+        #self.forcefully_remove_directory(module.env_id)
+        module.venv.delete()
         # remove the module from the list
         del self.modules[module.id]
         self.save()
