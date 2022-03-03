@@ -73,11 +73,12 @@ class ListTasks(Resource):
 class ShowTask(Resource):
     def get_task_status(self, task_id):
         task=manager.get_task(task_id)
+        task_dir = manager.get_task_dir(task_id)
         exitcode = task.exitcode
         if exitcode is None:
             return "running"
         if exitcode == 0:
-            if "error.log" in list(os.listdir("task_outputs/task_{}".format(task_id))):
+            if "error.log" in list(os.listdir(task_dir)):
                 emsg = self.read_error_log(task_id)
                 if len(emsg):
                     return "error"
