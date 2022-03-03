@@ -49,10 +49,18 @@ class ShowModule(Resource):
 class RunModule(Resource):
     def get_run_arguments(self, module_id):
         parser = reqparse.RequestParser()
-        parser.add_argument("parameter", type=str)
-        parser.add_argument("start", type=str)
-        parser.add_argument("stop", type=str)
+        #parser.add_argument("parameter", type=str)
+        #parser.add_argument("start", type=str)
+        #parser.add_argument("stop", type=str)
+        # list of arguments in module
+        module = manager[module_id]
+        argument_keys = module.metadata["args"]+["start", "stop"]
+        print("Module arguments : {}".format(argument_keys))
+        for k in argument_keys:
+            parser.add_argument(k, type=str)
+
         args = parser.parse_args()
+        print("ARgs : {}".format(args))
         return args
 
     def get(self, module_id):

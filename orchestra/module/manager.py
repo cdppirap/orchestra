@@ -117,9 +117,9 @@ class ModuleManager:
         if verbose:
             print("Request run for module id={}, args={}".format(module_id, run_args))
         module = self[module_id]
+        args = module.get_argument_list()
         # activate the environment and execute module
-        #param_str = " ".join([k for k in list(run_args.values()) if k is not None])
-        param_str = " ".join([run_args["parameter"], run_args["start"], run_args["stop"]])
+        param_str = " ".join([run_args[k] for k in args])
         error_log = os.path.join(output_dir, "error.log")
         cmd = "cd {} && . bin/activate && python -m {} {} {} 2> {}  && deactivate".format(
                 module.environment_path(),

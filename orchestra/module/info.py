@@ -45,4 +45,5 @@ class ModuleInfo:
     def get_executable(self):
         return self.metadata["install"]["executable"]
 
-
+    def get_argument_list(self):
+        return self.metadata["args"]+["start","stop"]
