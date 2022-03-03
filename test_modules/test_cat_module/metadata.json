@@ -1,0 +1,16 @@
+{
+	"name": "TestCatalogModule", 
+	"description": "Test catalog module, used for debugging ML pipeline", 
+	"args": [], 
+	"hyperparameters": [], 
+	"defaults": [], 
+	"output": {
+		"type": "catalog",
+		"filemane":"out.cat"
+	}, 
+	"install": {
+		"requirements":"requirements.txt",
+		"files": ["main.py"], 
+		"executable": "main"
+	}
+}
