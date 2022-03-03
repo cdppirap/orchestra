@@ -1,9 +1,12 @@
 {
 	"name": "TestTimeseriesModule", 
-	"description": "# Test timeseries module, used for debugging ML pipeline.\n	\n	Produces random data at one minute intervals. Test markdown `hello world` : *bold* , **ttttt**.\n	- a\n	- b\n	- c\n", 
+	"description": "# Test timeseries module, used for debugging ML pipeline.\n\nProduces random data at one minute intervals. Test markdown `hello world` : *bold* , **ttttt**.\n- a\n- b\n- c\n", 
 	"args": [], 
 	"hyperparameters": [], 
-	"defaults": [], 
+	"defaults": {
+		"start":"2000-01-01T00:00:00",
+		"stop":"2000-01-02T00:00:00"
+	}, 
 	"output": {
 		"type": "timeseries",
 		"filename": "out.csv"
