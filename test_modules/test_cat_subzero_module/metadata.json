@@ -1,0 +1,20 @@
+{
+	"name": "TestCatalogModule", 
+	"description": "Test catalog module, used for debugging ML pipeline. Produces files where parameter is less then zero", 
+	"args": ["parameter"], 
+	"hyperparameters": [], 
+	"defaults": {
+		"parameter":"imf",
+		"start":"2000-01-01T00:00:00",
+		"stop":"2000-01-02T00:00:00"
+	}, 
+	"output": {
+		"type": "catalog",
+		"filemane":"out.cat"
+	}, 
+	"install": {
+		"requirements":"requirements.txt",
+		"files": ["main.py"], 
+		"executable": "main"
+	}
+}
