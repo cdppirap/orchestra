@@ -1,6 +1,12 @@
 {
 	"name": "TestTimeseriesModule", 
-	"description": "# Test timeseries module, used for debugging ML pipeline.Produces random data at one minute intervals. Test markdown `hello world` : *bold* , **ttttt**", 
+	"description": "# Test timeseries module, used for debugging ML pipeline.
+	
+	Produces random data at one minute intervals. Test markdown `hello world` : *bold* , **ttttt**.
+	- a
+	- b
+	- c
+	", 
 	"args": [], 
 	"hyperparameters": [], 
 	"defaults": [], 
