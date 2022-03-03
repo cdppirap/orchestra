@@ -1,0 +1,16 @@
+{
+	"name": "TestCatalogModuleOneParameter", 
+	"description": "Test catalog module with one input parameter, used for debugging ML pipeline. Produces a catalog starting at the given start time and containing 1h long intervals for one out of every 2 hours.", 
+	"args": ["parameter"], 
+	"hyperparameters": [], 
+	"defaults": [], 
+	"output": {
+		"type": "catalog",
+		"filemane":"out.cat"
+	}, 
+	"install": {
+		"requirements":"requirements.txt",
+		"files": ["main.py"], 
+		"executable": "main"
+	}
+}
