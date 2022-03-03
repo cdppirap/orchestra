@@ -96,7 +96,7 @@ class ShowTask(Resource):
         return "error"
     def get_output_files(self, task_id):
         task_dir = manager.get_task_dir(task_id)
-        a=list(os.listdir("task_outputs/task_{}".format(task_id)))
+        a=list(os.listdir(task_dir))
         if "error.log" in a:
             if os.path.getsize(os.path.join(manager.get_task_dir(task_id), "error.log"))==0:
                 a.remove("error.log")
@@ -142,7 +142,7 @@ class TaskOutput(Resource):
     def get(self, task_id):
         task = manager.get_task(task_id)
         if task.exitcode==0:
-            output_dir = "task_outputs/task_{}".format(task_id)
+            output_dir = manager.get_task_dir(task_id)
             output_dir = os.path.abspath(output_dir)
             output_files = list(os.listdir(output_dir))
             if "error.log" in output_files:
