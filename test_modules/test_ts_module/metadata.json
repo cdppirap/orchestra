@@ -1,0 +1,16 @@
+{
+	"name": "TestTimeseriesModule", 
+	"description": "# Test timeseries module, used for debugging ML pipeline.Produces random data at one minute intervals. Test markdown `hello world` : *bold* , **ttttt**", 
+	"args": [], 
+	"hyperparameters": [], 
+	"defaults": [], 
+	"output": {
+		"type": "timeseries",
+		"filename": "out.csv"
+	}, 
+	"install": {
+		"requirements":"requirements.txt",
+		"files": ["main.py"], 
+		"executable": "main"
+	}
+}
