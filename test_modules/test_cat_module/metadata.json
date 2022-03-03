@@ -1,6 +1,6 @@
 {
 	"name": "TestCatalogModule", 
-	"description": "Test catalog module, used for debugging ML pipeline", 
+	"description": "Test catalog module, used for debugging ML pipeline. Produces a catalog starting at the given start time and containing 1h long intervals for one out of every 2 hours.", 
 	"args": [], 
 	"hyperparameters": [], 
 	"defaults": [], 
