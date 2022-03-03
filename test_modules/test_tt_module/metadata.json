@@ -1,0 +1,16 @@
+{
+	"name": "TestTimetableModule", 
+	"description": "Test timetable module, used for debugging ML pipeline. Produces a simple timetable with one hour long intervals every 2 hours", 
+	"args": [], 
+	"hyperparameters": [], 
+	"defaults": [], 
+	"output": {
+		"type": "timetable",
+		"filename":"out.tt"
+	}, 
+	"install": {
+		"requirements":"requirements.txt",
+		"files": ["main.py"], 
+		"executable": "main"
+	}
+}
