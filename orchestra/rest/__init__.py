@@ -47,19 +47,29 @@ class ShowModule(Resource):
         return manager.modules[module_id].get_data()
 
 class RunModule(Resource):
+    def get_run_arguments(self, module_id):
+        parser = reqparse.RequestParser()
+        parser.add_argument("parameter", type=str)
+        parser.add_argument("start", type=str)
+        parser.add_argument("stop", type=str)
+        args = parser.parse_args()
+        return args
+
     def get(self, module_id):
         manager.load()
         module_id = int(module_id)
         if not module_id in manager:
             return {"error":"Module does not exist"}
         # arguments
-        parser = reqparse.RequestParser()
-        parser.add_argument("parameter", type=str)
-        parser.add_argument("start", type=str)
-        parser.add_argument("stop", type=str)
-        args = parser.parse_args()
+        run_arguments = self.get_run_arguments(module_id)
+        print("Run arguments : {}".format(run_arguments))
+        #parser = reqparse.RequestParser()
+        #parser.add_argument("parameter", type=str)
+        #parser.add_argument("start", type=str)
+        #parser.add_argument("stop", type=str)
+        #args = parser.parse_args()
         # start a run task with the manager
-        task_id=manager.start_task(module_id, **args)
+        task_id=manager.start_task(module_id, **run_arguments)
         return {"status":"running", "task":task_id}
     def put(self, module_id):
         return self.get(module_id)
@@ -85,6 +95,7 @@ class ShowTask(Resource):
             return "done"
         return "error"
     def get_output_files(self, task_id):
+        task_dir = manager.get_task_dir(task_id)
         a=list(os.listdir("task_outputs/task_{}".format(task_id)))
         if "error.log" in a:
             if os.path.getsize(os.path.join(manager.get_task_dir(task_id), "error.log"))==0:
@@ -92,7 +103,11 @@ class ShowTask(Resource):
         return a
     def read_error_log(self, task_id):
         r=None
-        with open("task_outputs/task_{}/error.log".format(task_id), "r") as f:
+        task_dir = manager.get_task_dir(task_id)
+        error_file = os.path.join(task_dir, "error.log")
+        if not os.path.exists(error_file):
+            return ""
+        with open(error_file, "r") as f:
             r=f.read()
         return r
     def get(self, task_id):
