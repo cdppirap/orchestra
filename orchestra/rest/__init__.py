@@ -163,8 +163,8 @@ api.add_resource(RunModule, "/modules/<string:module_id>/run")
 
 # task related
 api.add_resource(ListTasks,"/tasks")
-api.add_resource(ShowTask, "/tasks/<task_id>")
-api.add_resource(KillTask, "/tasks/<task_id>/kill")
-api.add_resource(TaskOutput, "/tasks/<task_id>/output")
+api.add_resource(ShowTask, "/tasks/<int:task_id>")
+api.add_resource(KillTask, "/tasks/<int:task_id>/kill")
+api.add_resource(TaskOutput, "/tasks/<int:task_id>/output")
 
 

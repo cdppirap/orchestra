@@ -97,6 +97,7 @@ class ModuleManager:
         # create the context
         context = module.get_context()
         context = ContextManager().build(context)
+
         # save the module metadata
         sql = "INSERT INTO {} (json, context_id) VALUES (\'{}\', \'{}\');".format(config.module_info_table, json.dumps(module.metadata), context.id)
         conn = self.get_database_connection()
@@ -114,8 +115,9 @@ class ModuleManager:
         conn = self.get_database_connection()
         cursor = conn.cursor()
         ans=[r for r in cursor.execute(sql)]
-        conn.commit()
         conn.close()
+        if len(ans)==0:
+            raise ModuleIDNotFound(module_id)
         m=ModuleInfo.from_json(ans[0][1])
         m.set_id(module_id)
         return m
@@ -152,6 +154,7 @@ class ModuleManager:
         if os.path.exists(output_dir):
             self.forcefully_remove_directory(output_dir)
         os.mkdir(output_dir)
+        os.system("chmod a+s {}".format(output_dir))
 
         process = Process(target = self.run_module, args = (module_id,output_dir,kwargs,))
         self.tasks[task_id]=process
@@ -176,23 +179,19 @@ class ModuleManager:
         module = self[module_id]
         args = module.get_argument_list()
         context_id = self.get_context_id(module_id)
-        print("context id : {}".format(context_id))
         # activate the environment and execute module
         param_str = " ".join([run_args[k] for k in args])
-        error_log = os.path.join(output_dir, "error.log")
-        command = "python -m {} . {} 2> {}".format(module.get_executable(), 
+        error_log = os.path.join("/output", "error.log")
+        command = "python -m {} /output {} 2> {}".format(module.get_executable(), 
                 #os.path.abspath(output_dir),
                 param_str, 
                 error_log)
-        print("command : {}".format(command))
         # TODO : add error handeling
         out = None
         try:
-            out = ContextManager().run(context_id, command)
-            #out = subprocess.check_output(cmd, shell=True, stderr=subprocess.DEVNULL)
+            output_dir = os.path.abspath(output_dir)
+            out = ContextManager().run(context_id, command, output_dir)
         except Exception as e:
-            #raise ModuleRunError(e)
-            #print(e)
             raise Exception("Module run error {}".format(e))
         return 
     def has_task(self, task_id):
@@ -222,4 +221,8 @@ class ModuleManager:
         """Remove a task directory, the task should be done
         """
         self.forcefully_remove_directory(self.get_task_dir(task_id))
+    def context_exists(self, context_id):
+        """Check that context exists
+        """
+        return ContextManager().context_exists(context_id)
 

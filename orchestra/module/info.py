@@ -55,7 +55,7 @@ class ModuleInfo:
             req=[r for r in f.read().split("\n") if len(r)]
         return req
     def get_files(self):
-        return [os.path.join(self.path, f) for f in self.metadata["install"]["files"]]
+        return [os.path.abspath(os.path.join(self.path, f)) for f in self.metadata["install"]["files"]]
     def get_context(self):
         requ = PythonRequirements(self.get_requirements())
         context = PythonContext(requirements=requ, files=self.get_files())

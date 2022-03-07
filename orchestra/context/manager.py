@@ -6,32 +6,56 @@ from orchestra.context import PythonRequirements, PythonContext
 
 class ContextManager:
     def __init__(self):
+        self.client = None
+    def open_client(self):
         self.client = docker.from_env()
+    def close_client(self):
+        self.client.close()
     def build(self, context):
-        # dockerfile 
-        dockerfile = context.to_dockerfile()
-        with open("dockerfile","wb") as f:
-            f.write(dockerfile.read())
-        # move files to build context
-        fs = []
-        for f in context.files:
-            os.system("cp -r {} .".format(f))
-            fs.append(os.path.basename(f))
-        image,_ = self.client.images.build(path=".")
-        for f in fs:
-            os.system("rm -rf {}".format(f))
-        # remove dockerfile
-        os.system("rm -rf dockerfile")
-        return image
+        # create a temporary directory in which to store the dockerfile and other resources
+        import tempfile
+        parent_dir = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # change the current working directory
+            os.chdir(tmpdir)
+            # dockerfile creationg
+            dockerfile = context.to_dockerfile()
+            with open("dockerfile","wb") as f:
+                f.write(dockerfile.read())
+                dockerfile.close()
 
-    def run(self, context, command):
-        #print("Run in context {} : {}".format(context, cmd))
-        return self.client.containers.run(context , command, auto_remove=True)
+            # move files to build context
+            for f in context.files:
+                os.system("cp -r {} .".format(f))
+            
+            # build the image
+            self.open_client()
+            image,_ = self.client.images.build(path=".")
+            self.close_client()
+
+            # move back to parent directory
+            os.chdir(parent_dir)
+            return image
+
+    def run(self, context, command, output_dir):
+        self.open_client()
+        # create the mount
+        #m = docker.types.Mount(target=output_dir, source="output")
+        m = docker.types.Mount(target="/output", source=os.path.abspath(output_dir), type="bind")
+        logs = self.client.containers.run(context , command,  mounts=[m], auto_remove=True, user=os.getuid())
+        self.close_client()
+        return logs
     def get(self, context_id):
         print("Get context id={}".format(context_id))
     def delete(self, context):
-        self.client.images.remove(image=context.id)
+        with docker.from_env() as client:
+            client.images.remove(image=context.id)
         print("Delete context id={}".format(context.id))
+    def context_exists(self, context_id):
+        self.open_client()
+        a=context_id in [img.id for img in self.client.images.list()]
+        self.close_client()
+        return a
 
 if __name__=="__main__":
     # create a context for testing

@@ -22,8 +22,6 @@ class TestModuleManager(unittest.TestCase):
         """Test that the manager is well instanciated
         """
         self.assertIsNotNone(self.manager)
-        # check that the module container is a dictionary
-        self.assertTrue(isinstance(self.manager.modules, dict))
         # count the modules installed
         n = len(self.manager)
         self.assertTrue(isinstance(n, int))
@@ -34,7 +32,8 @@ class TestModuleManager(unittest.TestCase):
         n = len(self.manager)
         # install a module
         module_path = "test_modules/module0"
-        module = ModuleInfo(module_path)
+        module_metadata_path= os.path.join(module_path, "metadata.json")
+        module = ModuleInfo(module_metadata_path)
         module_id=self.manager.register_module(module, verbose=False)
         new_n = len(self.manager)
         self.assertEqual(new_n, n+1)
@@ -44,15 +43,14 @@ class TestModuleManager(unittest.TestCase):
         mod = self.manager[module_id]
         self.assertIsNotNone(mod)
         self.assertEqual(module_id, mod.id)
-        # check that the modules virtual environment exists
-        environment_path = mod.environment_path()
-        self.assertTrue(os.path.exists(environment_path))
+        # check that the modules context has been created
+        context_id = self.manager.get_context_id(module_id)
+
         self.assertTrue(module_id in self.manager)
-        self.assertTrue(mod in self.manager)
+        self.assertTrue(self.manager.context_exists(context_id))
 
         # remove the module
         self.manager.remove_module(module_id)
-        self.assertFalse(os.path.exists(environment_path))
         self.assertFalse(module_id in self.manager)
         self.assertEqual(len(self.manager), n)
         with self.assertRaises(ModuleIDNotFound):
@@ -68,7 +66,8 @@ class TestModuleManager(unittest.TestCase):
         """
         # register module1
         module_path = "test_modules/module0"
-        module = ModuleInfo(module_path)
+        module_metadata_path = os.path.join(module_path, "metadata.json")
+        module = ModuleInfo(module_metadata_path)
         module_id=self.manager.register_module(module, verbose=False)
         module = self.manager[module_id]
 
@@ -92,7 +91,8 @@ class TestModuleInfo(unittest.TestCase):
     """
     def test_load_from_folder(self):
         module_path = "test_modules/module0"
-        m = ModuleInfo(module_path)
+        module_metadata_path=os.path.join(module_path, "metadata.json")
+        m = ModuleInfo(module_metadata_path)
         self.assertIsNotNone(m)
 
 
@@ -144,7 +144,8 @@ class TestRESTAPI(unittest.TestCase):
 
         # get module information: register a module first
         module_path = "test_modules/module0"
-        module_info = ModuleInfo(module_path)
+        module_metadata_path = os.path.join(module_path, "metadata.json")
+        module_info = ModuleInfo(module_metadata_path)
         module_id = manager.register_module(module_info, verbose=False)
         
         url = get_rest_module_info_url(module_id)
@@ -152,7 +153,8 @@ class TestRESTAPI(unittest.TestCase):
             self.assertIsNotNone(f)
             content = json.loads(f.read())
             self.assertIsNotNone(content)
-            fields=["id","name","description", "args", "hyperparameters", "defaults", "output", "install"]
+            fields=["name","description", "args", "hyperparameters", "defaults", "output", "install"]
+            self.assertTrue(module_id, content["id"])
             for field in fields:
                 self.assertTrue(module_info.metadata[field] == content[field])
 
