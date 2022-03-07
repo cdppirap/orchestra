@@ -9,7 +9,7 @@
 	}, 
 	"output": {
 		"type": "catalog",
-		"filemane":"breuillard.cat"
+		"filename":"breuillard.cat"
 	}, 
 	"install": {
 		"requirements":"requirements.txt",

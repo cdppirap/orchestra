@@ -10,7 +10,7 @@
 	}, 
 	"output": {
 		"type": "catalog",
-		"filemane":"out.cat"
+		"filename":"out.cat"
 	}, 
 	"install": {
 		"requirements":"requirements.txt",
