@@ -1,5 +1,5 @@
 {
-	"name": "TestCatalogModule", 
+	"name": "TestCatalogModuleSubzero", 
 	"description": "Test catalog module, used for debugging ML pipeline. Produces files where parameter is less then zero", 
 	"args": ["parameter"], 
 	"hyperparameters": [], 
