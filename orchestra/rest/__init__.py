@@ -43,9 +43,6 @@ class ShowModule(Resource):
 class RunModule(Resource):
     def get_run_arguments(self, module_id):
         parser = reqparse.RequestParser()
-        #parser.add_argument("parameter", type=str)
-        #parser.add_argument("start", type=str)
-        #parser.add_argument("stop", type=str)
         # list of arguments in module
         module = manager[module_id]
         argument_keys = module.metadata["args"]+["start", "stop"]
@@ -71,7 +68,7 @@ class RunModule(Resource):
 
 class ListTasks(Resource):
     def get(self):
-        return [tid for tid in manager.tasks]
+        return [tid for tid,_ in manager.iter_tasks()]
     def post(self):
         return self.get()
 
@@ -110,6 +107,11 @@ class ShowTask(Resource):
             return {"error":"Task {} not found".format(task_id)}
         # status flag
         tid = int(task_id)
+        task = manager.get_task(tid)
+        if task.is_done():
+            task.data["output"]=self.get_output_files(tid)
+        return task.data
+
         exitcode = manager.get_task(tid).exitcode
         task_status = self.get_task_status(tid)
         error=None
@@ -136,9 +138,10 @@ class KillTask(Resource):
 class TaskOutput(Resource):
     def get(self, task_id):
         task = manager.get_task(task_id)
-        if task.exitcode==0:
-            output_dir = manager.get_task_dir(task_id)
-            output_dir = os.path.abspath(output_dir)
+        if task.is_done():
+            output_dir = task["output_dir"]
+            #output_dir = manager.get_task_dir(task_id)
+            #output_dir = os.path.abspath(output_dir)
             output_files = list(os.listdir(output_dir))
             if "error.log" in output_files:
                 # get error log size

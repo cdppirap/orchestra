@@ -76,9 +76,10 @@ class TestModuleManager(unittest.TestCase):
         start, stop="2000-01-01T00:00:00", "2000-01-02T00:00:00"
         args = {"parameter":param, "start":start, "stop":stop}
         task_id=self.manager.start_task(module_id, **args, verbose=False)
+        task_output_path = self.manager.get_task_dir(task_id)
 
         # check that the task output exists
-        self.assertTrue(os.path.exists(task_id))
+        self.assertTrue(os.path.exists(task_output_path))
 
         # wait for task end
         self.manager.tasks[task_id].join()
@@ -180,7 +181,7 @@ class TestRESTAPI(unittest.TestCase):
             self.assertIsNotNone(f)
             content = json.loads(f.read())
             self.assertIsNotNone(content)
-            fields = ["status", "output", "error", "id"]
+            fields = ["status", "output", "id"]
             self.assertTrue(all([k in content for k in fields]))
             self.assertTrue(content["status"]=="done")
             task_data = content

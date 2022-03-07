@@ -17,6 +17,19 @@ class ModuleInfo:
             self.path = os.path.dirname(filename)
             with open(filename , "r") as f:
                 self.metadata = json.load(f)
+    def argument_string(self, args):
+        """String of space separated values
+        """
+        arg_list = self.get_argument_list()
+        return " ".join([args[ak] for ak in arg_list])
+    def get_cli_command(self, output_dir, args):
+        """Build the command line sequence that will be fed to the module
+        """
+        error_path = os.path.join(output_dir, "error.log")
+        return "python -m {} {} {} 2> {}".format(self.get_executable(), 
+                output_dir, 
+                self.argument_string(args),
+                error_path)
     def is_valid(self):
         """Check that the metadata has all mandatory fields
         """

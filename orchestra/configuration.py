@@ -2,9 +2,10 @@
 """
 import os
 
-# module database
-module_database = os.path.abspath("db.sqlite3")
+# module and task database
+database = os.path.abspath("db.sqlite3")
 module_info_table = "module_info"
+task_info_table = "task_info"
 
 # modules configuration , list of registered modules
 module_file_path = "modules.pkl"

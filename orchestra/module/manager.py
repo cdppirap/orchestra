@@ -1,4 +1,5 @@
 import os
+import time
 import json
 import sqlite3
 import pickle as pkl
@@ -10,6 +11,7 @@ from orchestra.errors import ModuleIDNotFound
 from orchestra.environment import ModuleEnvironment
 
 from orchestra.context.manager import ContextManager
+from orchestra.tasks.info import TaskInfo, TaskStatus
 
 import orchestra.configuration as config
 
@@ -18,30 +20,46 @@ class ModuleManager:
     """
     def __init__(self):
         self.init_database()
-
         self.task_counter = 0
         self.tasks={}
-
+    def create_module_info_table_query(self):
+        """Create the module info table
+        """
+        return "CREATE TABLE IF NOT EXISTS {} (id integer PRIMARY KEY, json TEXT NOT NULL);".format(
+                config.module_info_table)
+    def create_task_info_table_query(self):
+        """Create the task table query
+        """
+        return "CREATE TABLE IF NOT EXISTS {} (id integer PRIMARY KEY, json TEXT NOT NULL);".format(
+                config.task_info_table)
+    def execute_sql(self, query):
+        """Execute an SQL query that has not result
+        """
+        #print("EXEC : {}".format(query))
+        lastrowid=None
+        conn = sqlite3.connect(config.database)
+        cursor = conn.cursor()
+        cursor.execute(query)
+        if query.startswith("INSERT"):
+            lastrowid = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        return lastrowid
+ 
     def init_database(self):
         """Inialize the database, create the module info table
         """
         conn = self.get_database_connection()
         # create tables if they do not exist
-        sql = "CREATE TABLE IF NOT EXISTS {} (id integer PRIMARY KEY, json TEXT NOT NULL, context_id TEXT NOT NULL);".format(config.module_info_table)
-        cursor = conn.cursor()
-        cursor.execute(sql)
-        conn.close()
+        self.execute_sql(self.create_module_info_table_query())
+        self.execute_sql(self.create_task_info_table_query())
 
     def clear(self):
         """Clear the list of modules and all associated tasks
         """
         sql = "DELETE FROM {}".format(config.module_info_table)
-        conn = sqlite3.connect(config.module_database)
-        cursor = conn.cursor()
-        cursor.execute(sql)
-        conn.commit()
-        conn.close()
-        
+        self.execute_sql(sql)
+        self.execute_sql("DELETE FROM {}".format(config.task_info_table))
         # clear tasks
         self.clear_tasks()
 
@@ -50,15 +68,30 @@ class ModuleManager:
         """
         self.tasks = {}
         self.task_counter = 0
+
     def iter_modules(self):
+        """Module iterator, yields tuples (module_id, module_obj)
+        """
         sql = "SELECT * FROM {} ORDER BY id".format(config.module_info_table)
-        conn = sqlite3.connect(config.module_database)
+        conn = sqlite3.connect(config.database)
         cursor = conn.cursor()
         for row in cursor.execute(sql):
             yield int(row[0]),ModuleInfo.from_json(row[1])
         conn.commit()
         conn.close()
-        
+
+    def iter_tasks(self):
+        """Task iterator, yields tuples (module_id, module_obj)
+        """
+        sql = "SELECT * FROM {} ORDER BY id".format(config.task_info_table)
+        conn = sqlite3.connect(config.database)
+        cursor = conn.cursor()
+        for row in cursor.execute(sql):
+            yield int(row[0]),TaskInfo.from_json(row[1])
+        conn.commit()
+        conn.close()
+
+
 
     def module_from_row(self, row):
         """Create a ModuleInfo object from a row of the module info table
@@ -89,7 +122,7 @@ class ModuleManager:
     def get_database_connection(self):
         """Get connection to the module info database
         """
-        return sqlite3.connect(config.module_database)
+        return sqlite3.connect(config.database)
 
     def register_module(self, module, verbose=True):
         """Register a module, returns the module id
@@ -142,25 +175,68 @@ class ModuleManager:
         """Get path of a task directory
         """
         return os.path.join(config.task_directory, "task_{}".format(task_id))
+    def get_task_info_insert_query(self, task):
+        return "INSERT INTO {} (json) VALUES (\'{}\');".format(config.task_info_table,
+                json.dumps(task.data))
+    def get_task_info_update_query(self, task):
+        return "UPDATE {} SET json=\'{}\' WHERE id={};".format(config.task_info_table,
+                json.dumps(task.data),
+                task.id)
+    def save_task(self, task):
+        """Save a task, if it doesn't have an id yet then return one, else update
+        """
+        if task.id is None:
+            task.id = self.execute_sql(self.get_task_info_insert_query(task))
+        else:
+            self.execute_sql(self.get_task_info_update_query(task))
+        return task.id
+
+
+
+    def create_task_dir(self, task_id):
+        """Create the task output directory, if the folder exists it is forcefully removed and
+        a new folder is created with the same name
+        """
+        od = self.get_task_dir(task_id)
+        if os.path.exists(od):
+            self.forcefully_remove_directory(od)
+        os.mkdir(od)
+        os.system("chmod a+s {}".format(od))
+        return os.path.abspath(od)
+
+    def clean_tasks(self):
+        """Remove all process objects that have finished running
+        """
+        self.tasks={k:self.tasks[k] for k in self.tasks if self.tasks[k].exitcode is None}
+
     def start_task(self, module_id, **kwargs):
         """Start a task for a module with the given arguments. All results of the execution are saved
         in a task directory. The id of the task is returned.
         """
         if not module_id in self:
             raise ModuleIDNotFound(module_id)
-        task_id = self.task_counter
-        self.task_counter += 1
-        output_dir = self.get_task_dir(task_id)
-        if os.path.exists(output_dir):
-            self.forcefully_remove_directory(output_dir)
-        os.mkdir(output_dir)
-        os.system("chmod a+s {}".format(output_dir))
 
-        process = Process(target = self.run_module, args = (module_id,output_dir,kwargs,))
+        # initiate a empty task object
+        task = TaskInfo(module_id, kwargs)
+        task_id = self.save_task(task)
+        task["id"]=task_id
+
+        # create a temporary directory for storing the output of the run
+        task["output_dir"] = self.create_task_dir(task_id)
+
+        # clean task list
+        self.clean_tasks()
+        
+        # start the process
+        process = Process(target = self.run_module, args = (task,))
         self.tasks[task_id]=process
         self.tasks[task_id].start()
+
         return task_id
+
     def get_context_id(self, module_id):
+        """Get a  module's context id
+        """
         sql = "SELECT context_id FROM {} WHERE id={}".format(config.module_info_table, module_id)
         conn = self.get_database_connection()
         cursor = conn.cursor()
@@ -170,45 +246,65 @@ class ModuleManager:
         return a[0][0]
 
 
-    def run_module(self, module_id, output_dir, run_args, verbose=False):
+    def run_module(self, task, verbose=False):
         """This function is called by the process in charge of executing the module. Code is executed
         in a new process
         """
         if verbose:
-            print("Request run for module id={}, args={}".format(module_id, run_args))
+            print("Request run for module id={}, args={}".format(module_id, task["arguments"]))
+        # retrieve the module object
+        module_id = task["module_id"]
         module = self[module_id]
-        args = module.get_argument_list()
+        # the module's execution context
         context_id = self.get_context_id(module_id)
-        # activate the environment and execute module
-        param_str = " ".join([run_args[k] for k in args])
-        error_log = os.path.join("/output", "error.log")
-        command = "python -m {} /output {} 2> {}".format(module.get_executable(), 
-                #os.path.abspath(output_dir),
-                param_str, 
-                error_log)
-        # TODO : add error handeling
+        # get the command line to send to the container
+        command = module.get_cli_command("/output", task["arguments"])
+        task["cmd"] = command
+        # output directory
+        output_dir = task["output_dir"]
+
+        # TODO : add error and stdout handeling
         out = None
+
+        task["start"] = time.time()
+        self.save_task(task)
         try:
-            output_dir = os.path.abspath(output_dir)
             out = ContextManager().run(context_id, command, output_dir)
         except Exception as e:
+            task["status"]=TaskStatus.ERROR
+            task["error"] = str(e)
+            self.save_task(task)
             raise Exception("Module run error {}".format(e))
+
+        # terminate the task at this point
+        task["stop"]=time.time()
+        task["status"]= TaskStatus.DONE
+        self.save_task(task)
         return 
+
     def has_task(self, task_id):
         """Check if a task exists by id
         """
         tid = int(task_id)
-        return tid in self.tasks
+        print("has task : {}, {}".format(task_id, self.list_tasks()))
+        r=tid in [t.id for t in self.list_tasks()]
+        print(r)
+        print([t.id for t in self.list_tasks()])
+        return r
     def list_tasks(self):
         """Return list of tasks
         """
-        return [t for t in self.tasks]
+        return [t for _,t in self.iter_tasks()]
     def get_task(self, task_id):
         """Get task information
         """
-        if not isinstance(task_id, int):
-            task_id = int(task_id)
-        return self.tasks[task_id]
+        sql = "SELECT json FROM {} WHERE id={}".format(config.task_info_table, task_id)
+        conn = self.get_database_connection()
+        cursor = conn.cursor()
+        ans=[r for r in cursor.execute(sql)]
+        conn.close()
+        return TaskInfo.from_json(ans[0][0])
+
     def kill_task(self, task_id):
         """Kill a task
         """

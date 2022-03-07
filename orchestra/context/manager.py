@@ -42,7 +42,11 @@ class ContextManager:
         # create the mount
         #m = docker.types.Mount(target=output_dir, source="output")
         m = docker.types.Mount(target="/output", source=os.path.abspath(output_dir), type="bind")
-        logs = self.client.containers.run(context , command,  mounts=[m], auto_remove=True, user=os.getuid())
+        logs = self.client.containers.run(context , command,  mounts=[m], 
+                auto_remove=True, 
+                user=os.getuid(),
+                cpu_period=100000,
+                cpu_quota=100000)
         self.close_client()
         return logs
     def get(self, context_id):
