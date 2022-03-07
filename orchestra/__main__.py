@@ -11,7 +11,7 @@ def is_github_repository_address(url):
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--list-modules", action="store_true", help="List modules")
-    parser.add_argument("--register", type=str, help="Register module")
+    parser.add_argument("-R","--register", type=str, help="Register module")
     parser.add_argument("--requirements", type=str, help="Module requirements")
     parser.add_argument("--files", nargs="+", default=[], help="Module files")
     parser.add_argument("--remove", nargs="+", default=[], help="Remove modules")
