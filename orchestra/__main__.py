@@ -11,24 +11,25 @@ def is_github_repository_address(url):
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--list-modules", action="store_true", help="List modules")
-    parser.add_argument("--register", type=str, help="Register module")
+    parser.add_argument("-R","--register", type=str, help="Register module")
     parser.add_argument("--requirements", type=str, help="Module requirements")
     parser.add_argument("--files", nargs="+", default=[], help="Module files")
     parser.add_argument("--remove", nargs="+", default=[], help="Remove modules")
     parser.add_argument("--clear", action="store_true", help="Remove all modules and tasks")
 
     args = parser.parse_args()
-
+    
+    # initialize the ModuleManager instance
     mod_manager = ModuleManager()
     # clear all modules and tasks
     if args.clear:
-        os.system("rm -rf {}/*".format(config.environment_directory))
-        os.system("rm -rf {}/*".format(config.task_directory))
         mod_manager.clear()
     # register a new model
     if args.register is not None:
         if os.path.exists(args.register):
-            mod = ModuleInfo(args.register)
+            # metadata path 
+            metadata_path = os.path.join(args.register, "metadata.json")
+            mod = ModuleInfo(metadata_path)
             mod_manager.register_module(mod)
         else:
             if is_github_repository_address(args.register):
@@ -47,7 +48,8 @@ if __name__=="__main__":
             except:
                 raise Exception("Expected integer module id, got '{}' (type={})".format(mod, type(mod)))
             mod_manager.remove_module(int(mod))
+
     if args.list_modules:
         print("Registered modules : {}".format(len(mod_manager)))
-        for m in mod_manager.modules:
-            print("{}. {}".format(m,mod_manager.modules[m]))
+        for mid, module in mod_manager.iter_modules():
+            print("{}. {}".format(mid,module))

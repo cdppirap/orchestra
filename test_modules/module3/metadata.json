@@ -1,0 +1,1 @@
+{"name": "module3", "description": "module3", "args": [], "hyperparameters": [], "defaults": [], "output": {"type": "timetable"}, "install": {"requirements":"requirements.txt","files": ["module3.py"], "executable": "module3"}}

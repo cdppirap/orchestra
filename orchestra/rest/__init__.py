@@ -1,9 +1,9 @@
 """Orchestra REST API
 
 Endpoints : - modules : list of installed modules
-            - module/<module_id> : module information
-            - module/<module_id>/run : run the module
-            - module/<module_id>/train : train the module
+            - modules/<module_id> : module information
+            - modules/<module_id>/run : run the module
+            - modules/<module_id>/train : train the module
 
 """
 import os
@@ -26,25 +26,19 @@ api = Api(app)
 class ListModules(Resource):
     def get(self):
         #manager = ModuleManager()
-        manager.load()
-        return [{"id":k, "name":manager.modules[k].metadata["name"]} for k in manager.modules]
+        return [{"id":k, "name":m.metadata["name"]} for k,m in manager.iter_modules()]
     def put(self):
         return self.get()
  
 class ShowModule(Resource):
     def get(self, module_id):
         module_id = int(module_id)
-        manager.load()
         if not int(module_id) in manager:
             return {"error":"Module does not exist"}
-        module = manager.modules[module_id]
-        return manager.modules[module_id].metadata
+        module = manager[module_id]
+        return module.metadata
     def put(self, module_id):
         return self.get(module_id)
-        manager.load()
-        if not module_id in manager:
-            return {"error":"Module does not exist"}
-        return manager.modules[module_id].get_data()
 
 class RunModule(Resource):
     def get_run_arguments(self, module_id):
@@ -64,18 +58,11 @@ class RunModule(Resource):
         return args
 
     def get(self, module_id):
-        manager.load()
         module_id = int(module_id)
         if not module_id in manager:
             return {"error":"Module does not exist"}
         # arguments
         run_arguments = self.get_run_arguments(module_id)
-        print("Run arguments : {}".format(run_arguments))
-        #parser = reqparse.RequestParser()
-        #parser.add_argument("parameter", type=str)
-        #parser.add_argument("start", type=str)
-        #parser.add_argument("stop", type=str)
-        #args = parser.parse_args()
         # start a run task with the manager
         task_id=manager.start_task(module_id, **run_arguments)
         return {"status":"running", "task":task_id}
@@ -171,13 +158,13 @@ class TaskOutput(Resource):
 
 # module related 
 api.add_resource(ListModules, "/modules")
-api.add_resource(ShowModule, "/module/<string:module_id>")
-api.add_resource(RunModule, "/module/<string:module_id>/run")
+api.add_resource(ShowModule, "/modules/<string:module_id>")
+api.add_resource(RunModule, "/modules/<string:module_id>/run")
 
 # task related
 api.add_resource(ListTasks,"/tasks")
-api.add_resource(ShowTask, "/task/<task_id>")
-api.add_resource(KillTask, "/task/<task_id>/kill")
-api.add_resource(TaskOutput, "/task/<task_id>/output")
+api.add_resource(ShowTask, "/tasks/<task_id>")
+api.add_resource(KillTask, "/tasks/<task_id>/kill")
+api.add_resource(TaskOutput, "/tasks/<task_id>/output")
 
 

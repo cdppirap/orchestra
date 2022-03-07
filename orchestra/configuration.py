@@ -1,6 +1,10 @@
 """Orchestra default configuration values
 """
 
+# module database
+module_database = "db.sqlite3"
+module_info_table = "module_info"
+
 # modules configuration , list of registered modules
 module_file_path = "modules.pkl"
 

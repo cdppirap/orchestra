@@ -1,49 +1,63 @@
 import os
 import json
 
-class ModuleInfo:
-    def __init__(self, path):
-        self.path = path
-        self.metadata = {}
-        #self.env_id = None
-        self.venv = None
+from orchestra.context import PythonRequirements, PythonContext
 
-        # if the module name corresponds with a folder
-        if os.path.isdir(path):
-            # load from directory
-            metadata_path = os.path.join(path, "metadata.json")
-            if not os.path.exists(metadata_path):
-                raise Exception("Could not find metadata file {}".format(metadata_path))
-        elif path.startswith("https://"):
-            # clone the repository from github
-            module_name = os.path.basename(path).replace(".git","")
-            os.system("git clone -c http.sslVerify=0 {}".format(path))
-            metadata_path = os.path.join(module_name, "metadata.json")
-            self.path = module_name
-        else:
-            raise Exception("Could not load model name={}".format(name))
-        with open(metadata_path,"r") as f:
-            self.metadata = json.load(f)
+mandatory_fields = ["name", "description", "args", "hyperparameters", "output", "defaults", "install"]
+class ModuleInfo:
+    def __init__(self, filename=None, metadata=None):
+        # initialize metadata
+        self.id = id
+        self.metadata={}
+        self.path = None
+        if metadata is not None:
+            self.metadata=metadata
+        # if a filename is given then load from file
+        if filename is not None:
+            self.path = os.path.dirname(filename)
+            with open(filename , "r") as f:
+                self.metadata = json.load(f)
     def is_valid(self):
-        mandatory_fields = ["name", "description", "args", "hyperparameters", "output", "defaults", "install"]
+        """Check that the metadata has all mandatory fields
+        """
         return all([k in self.metadata for k in mandatory_fields])
     def __str__(self):
-        if "id" in self.metadata:
-            return "Module (id={}, name={}, executable={})".format(self.metadata["id"], self.metadata["name"], self.metadata["install"]["executable"])
-        return "Module (name={})".format( self.metadata["name"])
+        """String representation of the ModuleInfo object
+        """
+        return "Module (name={}, executable={})".format(self.metadata["name"], self.metadata["install"]["executable"])
 
     def get_data(self):
+        """Get the metadata
+        """
         return self.metadata
-    def activation_path(self):
-        r=self.venv.activation_path()
-        return r
-    def environment_path(self):
-        return self.venv.path
     def set_id(self, id):
+        """Set id of the ModuleInfo object
+        """
         self.id = id
         self.metadata["id"]=id
     def get_executable(self):
+        """Get the modules executable
+        """
         return self.metadata["install"]["executable"]
-
     def get_argument_list(self):
+        """Get the modules argument list
+        """
         return self.metadata["args"]+["start","stop"]
+    @staticmethod
+    def from_json(json_data):
+        """Load a ModuleInfo object from JSON data structure
+        """
+        return ModuleInfo(metadata=json.loads(json_data))
+    def get_requirements(self):
+        if self.path is None:
+            return []
+        with open(os.path.join(self.path, self.metadata["install"]["requirements"]),"r") as f:
+            req=[r for r in f.read().split("\n") if len(r)]
+        return req
+    def get_files(self):
+        return [os.path.join(self.path, f) for f in self.metadata["install"]["files"]]
+    def get_context(self):
+        requ = PythonRequirements(self.get_requirements())
+        context = PythonContext(requirements=requ, files=self.get_files())
+        return context
+
