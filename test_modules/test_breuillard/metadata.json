@@ -13,7 +13,7 @@
 	}, 
 	"install": {
 		"requirements":"requirements.txt",
-		"files": ["main.py"], 
+		"files": ["main.py","model_regions_plasma_mms_2019.txt"], 
 		"executable": "main"
 	}
 }
