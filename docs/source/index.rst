@@ -13,3 +13,11 @@ Welcome to orchestra's documentation!
    testing
    authors
 
+Introduction
+------------
+
+Orchestra is the main component of AMDA's machine learning pipeline. It is responsible for creating
+isolated environement in which python modules can be run, starting execution tasks and returning results
+to the user. 
+
+
