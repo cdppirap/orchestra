@@ -26,7 +26,7 @@ class ModuleManager:
     def create_module_info_table_query(self):
         """Create the module info table
         """
-        return "CREATE TABLE IF NOT EXISTS {} (id integer PRIMARY KEY, json TEXT NOT NULL);".format(
+        return "CREATE TABLE IF NOT EXISTS {} (id integer PRIMARY KEY, json TEXT NOT NULL, context_id TEXT NOT NULL);".format(
                 config.module_info_table)
     def create_task_info_table_query(self):
         """Create the task table query
