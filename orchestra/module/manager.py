@@ -315,10 +315,10 @@ class ModuleManager:
         """Check if a task exists by id
         """
         tid = int(task_id)
-        print("has task : {}, {}".format(task_id, self.list_tasks()))
+        #print("has task : {}, {}".format(task_id, self.list_tasks()))
         r=tid in [t.id for t in self.list_tasks()]
-        print(r)
-        print([t.id for t in self.list_tasks()])
+        #print(r)
+        #print([t.id for t in self.list_tasks()])
         return r
     def list_tasks(self):
         """Return list of tasks

@@ -7,6 +7,7 @@ Endpoints : - modules : list of installed modules
 
 """
 import os
+import json
 
 from flask import Flask, request, send_from_directory
 from flask_restful import Resource, Api, reqparse
@@ -46,12 +47,13 @@ class RunModule(Resource):
         # list of arguments in module
         module = manager[module_id]
         argument_keys = module.metadata["args"]+["start", "stop"]
-        print("Module arguments : {}".format(argument_keys))
         for k in argument_keys:
             parser.add_argument(k, type=str)
 
         args = parser.parse_args()
-        print("ARgs : {}".format(args))
+
+        print("Module arguments :\n{}".format(json.dumps(args, indent=4, sort_keys=True)))
+        #print("ARgs : {}".format(args))
         return args
 
     def get(self, module_id):
