@@ -26,6 +26,8 @@ if __name__=="__main__":
         os.system("rm -rf {}/*".format(config.task_directory))
         mod_manager.clear()
     # register a new model
+    if args.register is None:
+        args.register = []
     for od in args.register:
         if od is not None:
             if os.path.exists(od):
