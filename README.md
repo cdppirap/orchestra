@@ -1,4 +1,4 @@
-# Python virtual environement manager
+# Python virtual environment manager
 
 Orchestra is a collection of tools for managing the backend part of AMDA's machine learning pipeline. Orchestra uses Flask to expose a REST API used by AMDA's internal components to retrieve
 information about the modules that are installed, create new prediction or training tasks, and more.
