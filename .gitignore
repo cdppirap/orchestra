@@ -13,3 +13,5 @@ venvs
 __pycache__
 
 # test modules
+# documentation
+docs/build

@@ -191,7 +191,6 @@ class TestRESTAPI(unittest.TestCase):
         with urllib.request.urlopen(url, timeout=10) as f:
             task_files = task_data["output"]
             content = f.read()
-            print("output content : {}".format(content))
             self.assertIsNotNone(content)
             # get the output file from task folder
             task_folder = manager.get_task_dir(task_id)
