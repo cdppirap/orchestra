@@ -121,7 +121,8 @@ class ModuleManager:
         # activate the environment and execute module
         param_str = " ".join([run_args[k] for k in args])
         error_log = os.path.join(output_dir, "error.log")
-        cmd = "cd {} && . bin/activate && python -m {} {} {} 2> {}  && deactivate".format(
+        cmd = "cd {} && . bin/activate && python -m {} {} {} 2> {}".format(
+        #cmd = "cd {} && . bin/activate && python -m {} {} {} 2> {}  && deactivate".format(
                 module.environment_path(),
                 module.get_executable(),\
                 os.path.abspath(output_dir), 
