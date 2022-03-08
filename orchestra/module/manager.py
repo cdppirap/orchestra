@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import json
 import sqlite3
@@ -53,10 +54,20 @@ class ModuleManager:
         # create tables if they do not exist
         self.execute_sql(self.create_module_info_table_query())
         self.execute_sql(self.create_task_info_table_query())
-
+    
+    def clear_contexts(self):
+        """Delete all contexts
+        """
+        cmanager = ContextManager()
+        for mid,m in self.iter_modules():
+            context_id = self.get_context_id(mid)
+            cmanager.remove(context_id)
     def clear(self):
         """Clear the list of modules and all associated tasks
         """
+        # clear contexts
+        self.clear_contexts()
+
         sql = "DELETE FROM {}".format(config.module_info_table)
         self.execute_sql(sql)
         self.execute_sql("DELETE FROM {}".format(config.task_info_table))
@@ -67,7 +78,8 @@ class ModuleManager:
         """Clear list of tasks
         """
         self.tasks = {}
-        self.task_counter = 0
+        # remove all task outputs 
+        os.system("rm -rf {}".format(os.path.join(config.task_directory,"*")))
 
     def iter_modules(self):
         """Module iterator, yields tuples (module_id, module_obj)
@@ -127,18 +139,26 @@ class ModuleManager:
     def register_module(self, module, verbose=True):
         """Register a module, returns the module id
         """
+        if verbose:
+            sys.stdout.write("Registrating {}...".format(module))
+            sys.stdout.flush()
         # create the context
+        image_tag = "orchestra:{}".format(module.metadata["name"])
         context = module.get_context()
-        context = ContextManager().build(context)
+        context = ContextManager().build(context, tag = image_tag)
 
         # save the module metadata
-        sql = "INSERT INTO {} (json, context_id) VALUES (\'{}\', \'{}\');".format(config.module_info_table, json.dumps(module.metadata), context.id)
+        sql = "INSERT INTO {} (json, context_id) VALUES (?,?);".format(config.module_info_table)
+
         conn = self.get_database_connection()
         cursor = conn.cursor()
-        cursor.execute(sql)
+        cursor.execute(sql, (json.dumps(module.metadata), context.id))
         conn.commit()
         conn.close()
-
+        if verbose:
+            sys.stdout.write("done\n".format(module))
+            sys.stdout.flush()
+ 
         return cursor.lastrowid
         
     def __getitem__(self, module_id):
@@ -158,12 +178,18 @@ class ModuleManager:
     def remove_module(self, module_id):
         """Remove a module
         """
+        # delete related contexts first
+        context_id = self.get_context_id(module_id)
+        ContextManager().remove(context_id)
+
+
         sql = "DELETE FROM {} WHERE id={}".format(config.module_info_table, module_id)
         conn = self.get_database_connection()
         cursor = conn.cursor()
         cursor.execute(sql)
         conn.commit()
         conn.close()
+
 
     def forcefully_remove_directory(self, path):
         """Forcefully remove a directory
@@ -188,7 +214,8 @@ class ModuleManager:
         if task.id is None:
             task.id = self.execute_sql(self.get_task_info_insert_query(task))
         else:
-            self.execute_sql(self.get_task_info_update_query(task))
+            q=self.get_task_info_update_query(task)
+            self.execute_sql(q)
         return task.id
 
 
@@ -270,10 +297,12 @@ class ModuleManager:
         self.save_task(task)
         try:
             out = ContextManager().run(context_id, command, output_dir)
+
         except Exception as e:
             task["status"]=TaskStatus.ERROR
-            task["error"] = str(e)
+            task["error"] = str(e).replace("\'", "\"")
             self.save_task(task)
+            #print("OUT ", out)
             raise Exception("Module run error {}".format(e))
 
         # terminate the task at this point

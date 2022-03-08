@@ -1,7 +1,7 @@
 {
 	"name": "module1", 
 	"description": "Simple model, downloads parameter data and saves it", 
-	"args": [], 
+	"args": ["parameter"], 
 	"hyperparameters": [], 
 	"defaults": [], 
 	"output": {
