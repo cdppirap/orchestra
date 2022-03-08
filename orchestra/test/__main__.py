@@ -102,14 +102,14 @@ def start_rest_server():
     """
     from orchestra.configuration import rest_host, rest_port
     from orchestra.rest import app
-    new_stdout = open("temp.out", "w")
+    new_stdout = open("/dev/null", "w")
     sys.stdout = new_stdout
     sys.stderr = new_stdout
     #
     app.run(host=rest_host, port=rest_port, debug=False)
 
     new_stdout.close()
-    os.system("rm -rf temp.out")
+    #os.system("rm -rf temp.out")
 
 class TestRESTAPI(unittest.TestCase):
     """Test the REST API implementation
