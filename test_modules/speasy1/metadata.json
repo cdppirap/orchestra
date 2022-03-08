@@ -1,0 +1,16 @@
+{
+	"name": "speasy0", 
+	"description": "Simple speasy model", 
+	"args": ["parameter"], 
+	"hyperparameters": [], 
+	"defaults": [], 
+	"output": {
+		"type": "timeseries",
+		"filename":"output.csv"
+	}, 
+	"install": {
+		"requirements":"requirements.txt",
+		"files": ["spz.py"], 
+		"executable": "spz"
+	}
+}
