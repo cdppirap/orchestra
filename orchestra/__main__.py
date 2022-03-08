@@ -11,7 +11,7 @@ def is_github_repository_address(url):
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--list-modules", action="store_true", help="List modules")
-    parser.add_argument("-R","--register", type=str, help="Register module")
+    parser.add_argument("-R","--register", nargs="+", type=str, help="Register module")
     parser.add_argument("--requirements", type=str, help="Module requirements")
     parser.add_argument("--files", nargs="+", default=[], help="Module files")
     parser.add_argument("--remove", nargs="+", default=[], help="Remove modules")
@@ -26,19 +26,20 @@ if __name__=="__main__":
         os.system("rm -rf {}/*".format(config.task_directory))
         mod_manager.clear()
     # register a new model
-    if args.register is not None:
-        if os.path.exists(args.register):
-            mod = ModuleInfo(args.register)
-            mod_manager.register_module(mod)
-        else:
-            if is_github_repository_address(args.register):
-                # clone the repository
-                os.system("git clone -c http.sslVerify=0 {}".format(args.register))
-                repository_folder = os.path.basename(args.register).replace(".git", "")
-                mod = ModuleInfo(repository_folder)
+    for od in args.register:
+        if od is not None:
+            if os.path.exists(od):
+                mod = ModuleInfo(od)
                 mod_manager.register_module(mod)
-                # delete files
-                os.system("rm -rf {}".format(repository_folder))
+            else:
+                if is_github_repository_address(od):
+                    # clone the repository
+                    os.system("git clone -c http.sslVerify=0 {}".format(od))
+                    repository_folder = os.path.basename(od).replace(".git", "")
+                    mod = ModuleInfo(repository_folder)
+                    mod_manager.register_module(mod)
+                    # delete files
+                    os.system("rm -rf {}".format(repository_folder))
 
     if len(args.remove):
         for mod in args.remove:
