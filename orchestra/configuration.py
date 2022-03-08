@@ -2,6 +2,10 @@
 """
 import os
 
+# docker related config
+docker_user = os.getlogin()
+docker_user_uid = os.getuid()
+
 # module and task database
 database = os.path.abspath("db.sqlite3")
 module_info_table = "module_info"

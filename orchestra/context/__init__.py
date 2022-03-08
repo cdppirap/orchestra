@@ -1,6 +1,8 @@
 import os
 from io import BytesIO
 
+import orchestra.configuration as config
+
 class PythonRequirements:
     def __init__(self, requirements=[], filename=None):
         self.requirements = requirements
@@ -20,8 +22,8 @@ class PythonRequirements:
         return " ".join(self.requirements)
 
 class PythonContext:
-    def __init__(self, requirements=[], files=[]):
-        self.python_version = 3.6
+    def __init__(self, requirements=[], files=[], python_version="3.6"):
+        self.python_version = "3.6"
         self.requirements=requirements
         self.files = files
     def __str__(self):
@@ -29,11 +31,18 @@ class PythonContext:
     def to_dockerfile(self):
         # all files must be moved to a temporary directory within the build context
         content = """FROM python:{}-slim-buster
-WORKDIR /""".format(self.python_version)
+RUN useradd --create-home --no-log-init --shell /bin/bash --uid {} {}
+USER {}
+WORKDIR /home/{}""".format(self.python_version, config.docker_user_uid, config.docker_user,
+            config.docker_user, config.docker_user)
+        # create a user
         if len(self.requirements):
             content += "\n"+"RUN pip install {}".format(self.pip_str())
         if len(self.files):
-            content += "\n"+"COPY {} .".format(self.file_str())
+            content += "\n"+"COPY {} /home/{}/".format(self.file_str(), config.docker_user)
+        #print("Content ")
+        #print(content)
+        #print()
         return BytesIO(bytearray(content.encode()))
     def pip_str(self):
         return self.requirements.pip_str()

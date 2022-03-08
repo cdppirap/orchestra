@@ -1,3 +1,6 @@
+# database
+db.sqlite3
+
 module_environments
 modules.pkl
 task_outputs

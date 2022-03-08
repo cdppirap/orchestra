@@ -1,1 +1,16 @@
-{"name": "module3", "description": "module3", "args": [], "hyperparameters": [], "defaults": [], "output": {"type": "timetable"}, "install": {"requirements":"requirements.txt","files": ["module3.py"], "executable": "module3"}}
+{
+	"name": "module3", 
+	"description": "Test module 3 : uses speasy", 
+	"args": ["parameter"], 
+	"hyperparameters": [], 
+	"defaults": [], 
+	"output": {
+		"type": "timetable",
+		"filename":"output.csv"
+	}, 
+	"install": {
+		"requirements":"requirements.txt",
+		"files": ["module3.py"], 
+		"executable": "module3"
+	}
+}
