@@ -1,9 +1,9 @@
 {
 	"name": "module0", 
 	"description": "Simple model, does nothing", 
-	"args": ["parameter"], 
+	"args": [], 
 	"hyperparameters": [], 
-	"defaults": ["imf"], 
+	"defaults": [], 
 	"output": {
 		"type": "timeseries"
 	}, 
