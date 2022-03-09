@@ -1,0 +1,21 @@
+{
+	"name": "module4", 
+	"description": "Simple model, does nothing, creates 2 files and returns only output", 
+	"args": ["parameter", "start", "stop"], 
+	"hyperparameters": [], 
+	"defaults": {
+		"parameter":"imf", 
+		"start":"2000-01-01T00:00:00", 
+		"stop":"2000-01-02T00:00:00"
+	},
+	"output": {
+		"type": "timeseries",
+		"filename":"output.csv"
+	}, 
+	"install": {
+		"python_version": "3.10",
+		"requirements":"requirements.txt",
+		"files": ["model0.py"], 
+		"executable": "model0"
+	}
+}
