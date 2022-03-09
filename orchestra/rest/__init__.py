@@ -25,23 +25,26 @@ api = Api(app)
 
 
 class ListModules(Resource):
+    """Module list endpoint, inquiring this endpoint will return a list of (id, name) pairs for every
+    module that is currently registered
+    """
     def get(self):
         #manager = ModuleManager()
         return [{"id":k, "name":m.metadata["name"]} for k,m in manager.iter_modules()]
-    def put(self):
-        return self.get()
  
 class ShowModule(Resource):
+    """Get module information
+    """
     def get(self, module_id):
         module_id = int(module_id)
         if not int(module_id) in manager:
             return {"error":"Module does not exist"}
         module = manager[module_id]
         return module.metadata
-    def put(self, module_id):
-        return self.get(module_id)
 
 class RunModule(Resource):
+    """Run a module
+    """
     def get_run_arguments(self, module_id):
         parser = reqparse.RequestParser()
         # list of arguments in module
@@ -69,12 +72,16 @@ class RunModule(Resource):
         return self.get(module_id)
 
 class ListTasks(Resource):
+    """List task information
+    """
     def get(self):
         return [tid for tid,_ in manager.iter_tasks()]
     def post(self):
         return self.get()
 
 class ShowTask(Resource):
+    """Get task information
+    """
     def get_task_status(self, task_id):
         task=manager.get_task(task_id)
         task_dir = manager.get_task_dir(task_id)
@@ -131,6 +138,8 @@ class ShowTask(Resource):
                 "id":int(task_id)}
 
 class KillTask(Resource):
+    """Kill a task by id
+    """
     def get(self, task_id):
         manager.kill_task(int(task_id))
         return {}
@@ -138,6 +147,8 @@ class KillTask(Resource):
         return self.get(task_id)
 
 class TaskOutput(Resource):
+    """Get task output files
+    """
     def get(self, task_id):
         task = manager.get_task(task_id)
         if task.is_done():
