@@ -23,7 +23,7 @@ class PythonRequirements:
 
 class PythonContext:
     def __init__(self, requirements=[], files=[], python_version="3.6"):
-        self.python_version = "3.6"
+        self.python_version = python_version
         self.requirements=requirements
         self.files = files
     def __str__(self):

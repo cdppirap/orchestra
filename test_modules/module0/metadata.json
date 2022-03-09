@@ -13,6 +13,7 @@
 		"filename":"output.csv"
 	}, 
 	"install": {
+		"python_version": "3.10",
 		"requirements":"requirements.txt",
 		"files": ["model0.py"], 
 		"executable": "model0"
