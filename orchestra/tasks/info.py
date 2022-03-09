@@ -35,6 +35,8 @@ class TaskInfo:
         self.data[k]=v
     def is_done(self):
         return self["status"]==TaskStatus.DONE or self["status"]==TaskStatus.ERROR
+    def get_module_id(self):
+        return self.data["module_id"]
 
     @staticmethod
     def from_json(json_data):

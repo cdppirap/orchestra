@@ -1,7 +1,7 @@
 {
 	"name": "TestCatalogModuleSubzero", 
 	"description": "Test catalog module, used for debugging ML pipeline. Produces files where parameter is less then zero", 
-	"args": ["parameter"], 
+	"args": ["parameter","start","stop"], 
 	"hyperparameters": [], 
 	"defaults": {
 		"parameter":"imf",
@@ -10,7 +10,7 @@
 	}, 
 	"output": {
 		"type": "catalog",
-		"filemane":"out.cat"
+		"filename":"out.cat"
 	}, 
 	"install": {
 		"requirements":"requirements.txt",

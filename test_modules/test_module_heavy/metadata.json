@@ -1,7 +1,7 @@
 {
 	"name": "TestHeavy", 
 	"description": "Test heavy", 
-	"args": [], 
+	"args": ["start","stop"], 
 	"hyperparameters": [], 
 	"defaults": {
 		"start":"2000-01-01T00:00:00",
@@ -9,7 +9,7 @@
 	}, 
 	"output": {
 		"type": "timeseries",
-		"filemane":"out.csv"
+		"filename":"out.csv"
 	}, 
 	"install": {
 		"requirements":"requirements.txt",

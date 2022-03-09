@@ -40,7 +40,12 @@ class ContextManager:
             
             # build the image
             self.open_client()
-            image,_ = self.client.images.build(path=".", tag=tag)
+            try:
+                image,logs = self.client.images.build(path=".", tag=tag)
+            except Exception as e:
+                print(e)
+                print(logs)
+
             self.close_client()
 
             # move back to parent directory

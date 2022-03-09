@@ -6,6 +6,7 @@ Endpoints : - modules : list of installed modules
             - modules/<module_id>/train : train the module
 
 """
+import tempfile
 import os
 import json
 
@@ -49,14 +50,22 @@ class RunModule(Resource):
         parser = reqparse.RequestParser()
         # list of arguments in module
         module = manager[module_id]
+        # add arguments to parser
         argument_keys = module.metadata["args"]+["start", "stop"]
+        argument_keys += module.metadata["hyperparameters"]
+        if not "start" in argument_keys:
+            argument_keys.append("start")
+        if not "stop" in argument_keys:
+            argument_keys.append("stop")
         for k in argument_keys:
-            parser.add_argument(k, type=str)
+            if isinstance(k, str):
+                parser.add_argument(k, type=str)
+            if isinstance(k, tuple) or isinstance(k, list):
+                parser.add_argument(k[0], type=eval(k[1]))
 
         args = parser.parse_args()
 
         print("Module arguments :\n{}".format(json.dumps(args, indent=4, sort_keys=True)))
-        #print("ARgs : {}".format(args))
         return args
 
     def get(self, module_id):
@@ -66,10 +75,8 @@ class RunModule(Resource):
         # arguments
         run_arguments = self.get_run_arguments(module_id)
         # start a run task with the manager
-        task_id=manager.start_task(module_id, **run_arguments)
+        task_id=manager.start_task(module_id, run_arguments)
         return {"status":"running", "task":task_id}
-    def put(self, module_id):
-        return self.get(module_id)
 
 class ListTasks(Resource):
     """List task information
@@ -152,23 +159,35 @@ class TaskOutput(Resource):
     def get(self, task_id):
         task = manager.get_task(task_id)
         if task.is_done():
+            # get the module
+            module = manager[task.get_module_id()]
+            # only return output if task is done
             output_dir = task["output_dir"]
-            #output_dir = manager.get_task_dir(task_id)
-            #output_dir = os.path.abspath(output_dir)
+            # get the output filenames
+            output_filenames = module.get_output_filenames()
             output_files = list(os.listdir(output_dir))
+
+            # if no error.log file or if it is empty then remove it
             if "error.log" in output_files:
                 # get error log size
                 if os.path.getsize(os.path.join(output_dir, "error.log"))==0:
                     output_files.remove("error.log")
+            output_files = [of for of in output_files if of in output_filenames or of=="error.log"]
             if len(output_files)==1:
-                content = open(os.path.join(output_dir,output_files[0]), "rb").read().decode("utf-8")
-                return send_from_directory(output_dir, output_files[0], as_attachment=True)
+                return send_from_directory(output_dir, output_files[0], as_attachment=False)
             if len(output_files)>1:
-                # zip the output
-                cmd = "cd {} ; zip output.zip {}".format(output_dir, " ".join(output_files))
-                os.system(cmd)
-                r=send_from_directory(output_dir, "output.zip", as_attachment=True)
-                os.system("rm -rf {}/output.zip".format(output_dir))
+                # create a temporary directory
+                prev_dir = os.getcwd()
+                with tempfile.TemporaryDirectory() as tempdir:
+                    os.chdir(tempdir)
+                    # zip the files
+                    os.system("zip output.zip {}".format(" ".join(output_files)))
+                    return send_from_directory(output_dir, "output.zip", as_attachment=False)
+                ## zip the output
+                #cmd = "cd {} ; zip output.zip {}".format(output_dir, " ".join(output_files))
+                #os.system(cmd)
+                #r=send_from_directory(output_dir, "output.zip", as_attachment=False)
+                #os.system("rm -rf {}/output.zip".format(output_dir))
                 return r
         return None
 

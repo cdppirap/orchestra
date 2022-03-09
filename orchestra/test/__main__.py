@@ -61,11 +61,11 @@ class TestModuleManager(unittest.TestCase):
         module_path = "module_that_does_not_exist"
         with self.assertRaises(Exception):
             m = ModuleInfo(module_path)
-    def test_run_module(self):
+    def test_run_module(self, module_path = "test_modules/module0"):
         """Test running a module
         """
         # register module1
-        module_path = "test_modules/module0"
+        #module_path = "test_modules/module0"
         module_metadata_path = os.path.join(module_path, "metadata.json")
         module = ModuleInfo(module_metadata_path)
         module_id=self.manager.register_module(module, verbose=False)
@@ -75,7 +75,7 @@ class TestModuleManager(unittest.TestCase):
         param = "imf"
         start, stop="2000-01-01T00:00:00", "2000-01-02T00:00:00"
         args = {"parameter":param, "start":start, "stop":stop}
-        task_id=self.manager.start_task(module_id, **args, verbose=False)
+        task_id=self.manager.start_task(module_id, args)
         task_output_path = self.manager.get_task_dir(task_id)
 
         # check that the task output exists
@@ -86,6 +86,15 @@ class TestModuleManager(unittest.TestCase):
 
         # remove the module
         self.manager.remove_module(module_id)
+    def test_multiple_module(self):
+        module_list = ["module0", "module1", "module2", "module3", "speasy1", 
+                "test_breuillard", "test_cat_module", "test_cat_module_1_param",
+                "test_cat_subzero_module", "test_module_heavy", "test_ts_module",
+                "test_tt_module"]
+        module_paths = [os.path.join("test_modules", m) for m in module_list]
+        for mod in module_paths: 
+            print("Testing {}".format(mod))
+            self.test_run_module(mod)
 
 class TestModuleInfo(unittest.TestCase):
     """Test module info implementation

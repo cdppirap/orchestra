@@ -236,7 +236,7 @@ class ModuleManager:
         """
         self.tasks={k:self.tasks[k] for k in self.tasks if self.tasks[k].exitcode is None}
 
-    def start_task(self, module_id, **kwargs):
+    def start_task(self, module_id, task_args):
         """Start a task for a module with the given arguments. All results of the execution are saved
         in a task directory. The id of the task is returned.
         """
@@ -244,7 +244,7 @@ class ModuleManager:
             raise ModuleIDNotFound(module_id)
 
         # initiate a empty task object
-        task = TaskInfo(module_id, kwargs)
+        task = TaskInfo(module_id, task_args)
         task_id = self.save_task(task)
         task["id"]=task_id
 

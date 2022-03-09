@@ -1,9 +1,10 @@
 {
 	"name": "TestCatalogModuleOneParameter", 
 	"description": "Test catalog module with one input parameter, used for debugging ML pipeline. Produces a catalog starting at the given start time and containing 1h long intervals for one out of every 2 hours.", 
-	"args": ["parameter"], 
+	"args": ["parameter", "start", "stop"], 
 	"hyperparameters": [], 
 	"defaults": {
+		"parameter":"imf",
 		"start":"2000-01-01T00:00:00",
 		"stop":"2000-01-02T00:00:00"
 	}, 

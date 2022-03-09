@@ -21,15 +21,35 @@ class ModuleInfo:
         """String of space separated values
         """
         arg_list = self.get_argument_list()
+        ag=[]
+        for a in arg_list:
+            if isinstance(a, list):
+                if not a[0] in args:
+                    continue
+                if args[a[0]] is None:
+                    continue
+                ag.append("--{} {}".format(a[0], args[a[0]]))
+            else:
+                if args[a] is None:
+                    continue
+                ag.append("--{} {}".format(a, args[a]))
+
+        #arg_list = ["--{} {}".format(a, args[a]) for a in arg_list]
+        return " ".join(ag)
+
         return " ".join([args[ak] for ak in arg_list])
     def get_cli_command(self, output_dir, args):
         """Build the command line sequence that will be fed to the module
         """
         error_path = os.path.join(output_dir, "error.log")
-        return "python -m {} {} {} 2> {}".format(self.get_executable(), 
+        return "python -m {} {} {}".format(self.get_executable(), 
                 output_dir, 
-                self.argument_string(args),
-                error_path)
+                self.argument_string(args))
+ 
+#        return "python -m {} {} {} 2> {}".format(self.get_executable(), 
+#                output_dir, 
+#                self.argument_string(args),
+#                error_path)
     def is_valid(self):
         """Check that the metadata has all mandatory fields
         """
@@ -55,7 +75,13 @@ class ModuleInfo:
     def get_argument_list(self):
         """Get the modules argument list
         """
-        return self.metadata["args"]+["start","stop"]
+        arglist = self.metadata["args"] + self.metadata["hyperparameters"]
+        if not "start" in arglist:
+            arglist.append("start")
+        if not "stop" in arglist:
+            arglist.append("stop")
+        return arglist
+        #return self.metadata["args"]+["start","stop"]
     @staticmethod
     def from_json(json_data):
         """Load a ModuleInfo object from JSON data structure
@@ -73,4 +99,7 @@ class ModuleInfo:
         requ = PythonRequirements(self.get_requirements())
         context = PythonContext(requirements=requ, files=self.get_files())
         return context
+    def get_output_filenames(self):
+        print(self.metadata)
+        return self.metadata["output"]["filename"]
 

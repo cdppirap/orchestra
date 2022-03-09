@@ -1,11 +1,16 @@
 {
 	"name": "module1", 
 	"description": "Simple model, downloads parameter data and saves it", 
-	"args": ["parameter"], 
+	"args": ["parameter","start","stop"], 
 	"hyperparameters": [], 
-	"defaults": [], 
+	"defaults": {
+		"parameter":"imf",
+		"start":"2000-01-01T00:00:00",
+		"stop":"2000-01-02T00:00:00"
+	}, 
 	"output": {
-		"type": "timeseries"
+		"type": "timeseries",
+		"filename":"output.csv"
 	}, 
 	"install": {
 		"requirements":"requirements.txt",

@@ -1,5 +1,6 @@
 import argparse
 import os
+import pwd
 
 import orchestra.configuration as config
 from orchestra.module.info import ModuleInfo
@@ -8,7 +9,13 @@ from orchestra.module.manager import ModuleManager
 def is_github_repository_address(url):
     return url.startswith("https://") and url.endswith(".git")
 
+def get_username():
+    return pwd.getpwuid( os.getuid() )[ 0 ]
+
 if __name__=="__main__":
+    if get_username() == "root":
+        print("You should not run orchestra as root. Exiting...")
+        exit()
     parser = argparse.ArgumentParser()
     parser.add_argument("--list-modules", action="store_true", help="List modules")
     parser.add_argument("-R","--register", nargs="+", type=str, help="Register module")

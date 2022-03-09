@@ -3,13 +3,21 @@ import pandas as pd
 import sys
 import os
 
-output_dir = sys.argv[1]
-parameter_id = sys.argv[2]
-start_time = sys.argv[3]
-stop_time = sys.argv[4]
+import argparse
 
-p = speasy.get_data("amda/"+parameter_id, start_time, stop_time)
+# parse arguments
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("output_dir", type=str)
+    parser.add_argument("--start", type=str, default="2000-01-01T00:00:00")
+    parser.add_argument("--stop", type=str, default="2000-01-02T00:00:00")
+    parser.add_argument("--parameter", type=str, default="imf")
+    return parser.parse_args()
 
-output_filename = os.path.join(output_dir, "output.csv")
+args=parse_args()
+
+p = speasy.get_data("amda/"+args.parameter, args.start, args.stop)
+
+output_filename = os.path.join(args.output_dir, "output.csv")
 df = p.to_dataframe()
 df.to_csv(output_filename)
