@@ -23,6 +23,7 @@ class ModuleManager:
         self.init_database()
         self.task_counter = 0
         self.tasks={}
+        self.create_task_output_dir()
     def create_module_info_table_query(self):
         """Create the module info table
         """
@@ -197,6 +198,11 @@ class ModuleManager:
         cmd = "rm -rf {}".format(path)
         #cmd = "rm -rf {} &> /dev/null".format(path)
         os.system(cmd)
+    def create_task_output_dir(self):
+        """Create task output directory if needed
+        """
+        os.makedirs(config.task_directory, exist_ok=True)
+        os.system("chmod a+s {}".format(config.task_directory))
     def get_task_dir(self, task_id):
         """Get path of a task directory
         """
