@@ -51,7 +51,7 @@ class RunModule(Resource):
         # list of arguments in module
         module = manager[module_id]
         # add arguments to parser
-        argument_keys = module.metadata["args"]+["start", "stop"]
+        argument_keys = module.metadata["args"]
         argument_keys += module.metadata["hyperparameters"]
         if not "start" in argument_keys:
             argument_keys.append("start")
@@ -59,9 +59,9 @@ class RunModule(Resource):
             argument_keys.append("stop")
         for k in argument_keys:
             if isinstance(k, str):
-                parser.add_argument(k, type=str)
+                parser.add_argument(k, type=str, location="args")
             if isinstance(k, tuple) or isinstance(k, list):
-                parser.add_argument(k[0], type=eval(k[1]))
+                parser.add_argument(k[0], type=eval(k[1]), location="args")
 
         args = parser.parse_args()
 
