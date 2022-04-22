@@ -41,6 +41,7 @@ WORKDIR /home/{}""".format(self.python_version, config.docker_user_uid, config.d
         if len(self.files):
             for f in self.files:
                 content += "\n"+"ADD {} {}".format(os.path.basename(f),os.path.basename(f))
+        content += "\n"+"RUN chown -R {}:{} {}".format(config.docker_user,config.docker_user,self.file_str())
         #print("Content ")
         #print(content)
         #print()
