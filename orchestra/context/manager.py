@@ -41,7 +41,7 @@ class ContextManager:
             # build the image
             self.open_client()
             try:
-                image,logs = self.client.images.build(path=".", tag=tag)
+                image,logs = self.client.images.build(path=".", tag=tag, nocache=True)
             except Exception as e:
                 print(e)
                 print(logs)
