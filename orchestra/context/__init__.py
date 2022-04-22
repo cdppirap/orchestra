@@ -39,7 +39,8 @@ WORKDIR /home/{}""".format(self.python_version, config.docker_user_uid, config.d
         if len(self.requirements):
             content += "\n"+"RUN pip install {}".format(self.pip_str())
         if len(self.files):
-            content += "\n"+"COPY {} /home/{}/".format(self.file_str(), config.docker_user)
+            for f in self.files:
+                content += "\n"+"ADD {} {}".format(os.path.basename(f),os.path.basename(f))
         #print("Content ")
         #print(content)
         #print()
