@@ -97,7 +97,7 @@ class ModuleInfo:
         return [os.path.abspath(os.path.join(self.path, f)) for f in self.metadata["install"]["files"]]
     def get_context(self):
         requ = PythonRequirements(self.get_requirements())
-        context = PythonContext(requirements=requ, files=self.get_files(), python_version=self.get_python_version())
+        context = PythonContext(requirements=requ, files=self.get_files(), python_version=self.get_python_version(), post_process=self.get_post_process())
         return context
     def get_output_filenames(self):
         print(self.metadata)
@@ -106,4 +106,8 @@ class ModuleInfo:
         if "python_version" not in self.metadata["install"]:
             return "3.6"
         return self.metadata["install"]["python_version"]
+    def get_post_process(self):
+        if "post_process" not in self.metadata["install"]:
+            return []
+        return self.metadata["install"]["post_process"]
 

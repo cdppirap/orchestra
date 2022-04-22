@@ -22,10 +22,11 @@ class PythonRequirements:
         return " ".join(self.requirements)
 
 class PythonContext:
-    def __init__(self, requirements=[], files=[], python_version="3.6"):
+    def __init__(self, requirements=[], files=[], python_version="3.6", post_process=[]):
         self.python_version = python_version
         self.requirements=requirements
         self.files = files
+        self.post_process = post_process
     def __str__(self):
         return "PythonContext (version={}, requirements={}, files={})".format(self.python_version, self.requirements, self.files)
     def to_dockerfile(self):
@@ -41,7 +42,9 @@ WORKDIR /home/{}""".format(self.python_version, config.docker_user_uid, config.d
         if len(self.files):
             for f in self.files:
                 content += "\n"+"ADD {} {}".format(os.path.basename(f),os.path.basename(f))
-        content += "\n"+"RUN chown -R {}:{} {}".format(config.docker_user,config.docker_user,self.file_str())
+        if len(self.post_process):
+            for p in self.post_process:
+                content += "\n"+p
         #print("Content ")
         #print(content)
         #print()
