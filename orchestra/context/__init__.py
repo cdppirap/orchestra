@@ -41,7 +41,7 @@ WORKDIR /home/{}""".format(self.python_version, config.docker_user_uid, config.d
             content += "\n"+"RUN pip install {}".format(self.pip_str())
         if len(self.files):
             for f in self.files:
-                content += "\n"+"ADD {} {}".format(os.path.basename(f),os.path.basename(f))
+                content += "\n"+"ADD --chown=orchestra:orchestra {} {}".format(os.path.basename(f),os.path.basename(f))
         if len(self.post_process):
             for p in self.post_process:
                 content += "\n"+p
