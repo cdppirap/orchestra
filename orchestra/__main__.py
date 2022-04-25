@@ -45,7 +45,8 @@ if __name__=="__main__":
                     # clone the repository
                     os.system("git clone -c http.sslVerify=0 {}".format(target))
                     repository_folder = os.path.basename(target).replace(".git", "")
-                    mod = ModuleInfo(repository_folder)
+                    metadata_path = os.path.join(repository_folder, "metadata.json")
+                    mod = ModuleInfo(metadata_path)
                     mod_manager.register_module(mod)
                     # delete files
                     os.system("rm -rf {}".format(repository_folder))
