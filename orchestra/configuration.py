@@ -21,7 +21,7 @@ environment_directory = "module_environments"
 task_directory = "task_outputs"
 
 # REST configuration
-rest_host = "127.0.0.1"
+rest_host = "0.0.0.0"#"127.0.0.1"
 rest_port = 5000
 
 

@@ -93,7 +93,6 @@ class TestModuleManager(unittest.TestCase):
                 "test_tt_module"]
         module_paths = [os.path.join("test_modules", m) for m in module_list]
         for mod in module_paths: 
-            print("Testing {}".format(mod))
             self.test_run_module(mod)
 
 class TestModuleInfo(unittest.TestCase):
@@ -190,7 +189,7 @@ class TestRESTAPI(unittest.TestCase):
             self.assertIsNotNone(f)
             content = json.loads(f.read())
             self.assertIsNotNone(content)
-            fields = ["status", "output", "id"]
+            fields = ["status", "output_dir", "id"]
             self.assertTrue(all([k in content for k in fields]))
             self.assertTrue(content["status"]=="done")
             task_data = content
