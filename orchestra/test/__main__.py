@@ -191,6 +191,7 @@ class TestRESTAPI(unittest.TestCase):
             self.assertIsNotNone(content)
             fields = ["status", "output_dir", "id"]
             self.assertTrue(all([k in content for k in fields]))
+            print(content["status"], " should equals done")
             self.assertTrue(content["status"]=="done")
             task_data = content
 
