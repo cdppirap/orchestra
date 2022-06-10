@@ -5,6 +5,35 @@ information about the modules that are installed, create new prediction or train
 
 Each machine learning model is implemented as a `python module` that is installed with all its requirements in a dedictated virtual environement. 
 
+## Installation
+### Dependencies
+Make sure you have `git` installed as well as python with the `venv` module installed. Then create directory to hold `orchestra`'s source code.
+
+```
+mkdir orchestra
+cd orchestra
+```
+
+Create a virtual environement and activate it : 
+```
+python3 -m venv venv
+. venv/bin/activate
+```
+
+Clone and move into the git repository : 
+```
+git clone https://github.com/cdppirap/orchestra.git
+cd orchestra
+```
+
+Install the requirements : 
+```
+python -m pip install -r requirements.txt
+```
+
+
+
+
 ## REST API endpoints
 
 List of endpoints exposed by the REST API : 
