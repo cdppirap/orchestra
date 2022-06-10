@@ -6,10 +6,29 @@ information about the modules that are installed, create new prediction or train
 Each machine learning model is implemented as a `python module` that is installed with all its requirements in a dedictated virtual environement. 
 
 ## Installation
+### Docker
+Follow instructions at [https://docs.docker.com/engine/install] to install the docker engine.
+
+Add your user to the `docker` user group : 
+```
+sudo groupadd docker
+sudo usermod -aG docker <username>
+newgrp docker
+```
+
+Test the docker installation : 
+```
+docker run hello-world
+```
+
+If you still get a permission denied error try the following : 
+```
+sudo chmod 666 /var/run/docker.sock
+```
+
 ### Dependencies
 Make sure you have `git` installed as well as python with the `venv` module installed. 
 
-Follow instructions at [https://docs.docker.com/engine/install] to install the docker engine.
  
 Then create directory to hold `orchestra`'s source code.
 
