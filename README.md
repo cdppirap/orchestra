@@ -9,6 +9,8 @@ Each machine learning model is implemented as a `python module` that is installe
 ### Dependencies
 Make sure you have `git` installed as well as python with the `venv` module installed. Then create directory to hold `orchestra`'s source code.
 
+Follow instructions at [https://docs.docker.com/engine/install] to install the docker engine.
+
 ```
 mkdir orchestra
 cd orchestra
@@ -31,6 +33,16 @@ Install the requirements :
 python -m pip install -r requirements.txt
 ```
 
+Start the REST server : 
+```
+python -m orchestra.rest
+```
+
+### Testing
+Run tests to check that everything works : 
+```
+python -m orchestra.test
+```
 
 
 
