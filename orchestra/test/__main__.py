@@ -90,7 +90,8 @@ class TestModuleManager(unittest.TestCase):
         module_list = ["module0", "module1", "module2", "module3", "speasy1", 
                 "test_breuillard", "test_cat_module", "test_cat_module_1_param",
                 "test_cat_subzero_module", "test_module_heavy", "test_ts_module",
-                "test_tt_module"]
+                "test_tt_module", "module4"]
+        module_list = list(os.listdir("test_modules"))
         module_paths = [os.path.join("test_modules", m) for m in module_list]
         for mod in module_paths: 
             print("Testing {}".format(mod))
