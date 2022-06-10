@@ -1,9 +1,71 @@
-# Python virtual environment manager
+# Python virtual environement manager
 
 Orchestra is a collection of tools for managing the backend part of AMDA's machine learning pipeline. Orchestra uses Flask to expose a REST API used by AMDA's internal components to retrieve
 information about the modules that are installed, create new prediction or training tasks, and more.
 
 Each machine learning model is implemented as a `python module` that is installed with all its requirements in a dedictated virtual environement. 
+
+## Installation
+### Docker
+Follow instructions at [https://docs.docker.com/engine/install] to install the docker engine.
+
+Add your user to the `docker` user group : 
+```
+sudo groupadd docker
+sudo usermod -aG docker <username>
+newgrp docker
+```
+
+Test the docker installation : 
+```
+docker run hello-world
+```
+
+If you still get a permission denied error try the following : 
+```
+sudo chmod 666 /var/run/docker.sock
+```
+
+### Dependencies
+Make sure you have `git` installed as well as python with the `venv` module installed. 
+
+ 
+Then create directory to hold `orchestra`'s source code.
+
+```
+mkdir orchestra
+cd orchestra
+```
+
+Create a virtual environement and activate it : 
+```
+python3 -m venv venv
+. venv/bin/activate
+```
+
+Clone and move into the git repository : 
+```
+git clone https://github.com/cdppirap/orchestra.git
+cd orchestra
+```
+
+Install the requirements : 
+```
+python -m pip install -r requirements.txt
+```
+
+Start the REST server : 
+```
+python -m orchestra.rest
+```
+
+### Testing
+Run tests to check that everything works : 
+```
+python -m orchestra.test
+```
+
+
 
 ## REST API endpoints
 
