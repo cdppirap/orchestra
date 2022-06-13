@@ -84,13 +84,26 @@ class TestModuleManager(unittest.TestCase):
         # wait for task end
         self.manager.tasks[task_id].join()
 
+        # remove the task
+        self.manager.remove_task(task_id)
+
         # remove the module
         self.manager.remove_module(module_id)
     def test_multiple_module(self):
-        module_list = ["module0", "module1", "module2", "module3", "speasy1", 
-                "test_breuillard", "test_cat_module", "test_cat_module_1_param",
-                "test_cat_subzero_module", "test_module_heavy", "test_ts_module",
-                "test_tt_module"]
+        module_list = ["module0",
+                #"module1", 
+                #"module2", 
+                #"module3", 
+                #"speasy1", 
+                #"test_breuillard", 
+                #"test_cat_module", 
+                #"test_cat_module_1_param",
+                #"test_cat_subzero_module", 
+                #"test_module_heavy", 
+                #"test_ts_module",
+                #"test_tt_module"
+                ]
+
         module_paths = [os.path.join("test_modules", m) for m in module_list]
         for mod in module_paths: 
             self.test_run_module(mod)
@@ -185,15 +198,28 @@ class TestRESTAPI(unittest.TestCase):
         # get the status of the module run
         url = get_rest_task_info_url(task_id)
         task_data = None
-        with urllib.request.urlopen(url, timeout=10) as f:
-            self.assertIsNotNone(f)
-            content = json.loads(f.read())
-            self.assertIsNotNone(content)
-            fields = ["status", "output_dir", "id"]
-            self.assertTrue(all([k in content for k in fields]))
-            print(content["status"], " should equals done")
-            self.assertTrue(content["status"]=="done")
-            task_data = content
+
+        while True:
+            with urllib.request.urlopen(url, timeout=10) as f:
+                self.assertIsNotNone(f)
+                content = json.loads(f.read())
+                self.assertIsNotNone(content)
+                fields = ["status", "output_dir", "id"]
+                self.assertTrue(all([k in content for k in fields]))
+                if content["status"] == "done":
+                    # if task is running then wait 1 second and repeate
+                    self.assertTrue(content["status"]=="done")
+                    task_data = content
+                    break
+                elif content["status"] == "error":
+                    self.assertTrue(False) # error in run (should not happen)
+                    break
+                else:
+                    # task is still running, wait 1 second and repeat
+                    print("Task is still running, waiting")
+                    time.sleep(1)
+
+
 
         # get the task output
         url = get_rest_task_output_url(task_id)

@@ -75,6 +75,10 @@ class ModuleManager:
         # clear tasks
         self.clear_tasks()
 
+        # prune docker images and containers
+        ContextManager().docker_prune()
+
+
     def clear_tasks(self):
         """Clear list of tasks
         """
@@ -145,6 +149,7 @@ class ModuleManager:
             sys.stdout.flush()
         # create the context
         image_tag = "orchestra:{}".format(module.metadata["name"])
+        print(f"Image tag : {image_tag}")
         context = module.get_context()
         context = ContextManager().build(context, tag = image_tag)
 
@@ -179,6 +184,7 @@ class ModuleManager:
     def remove_module(self, module_id):
         """Remove a module
         """
+        print(f"Remove moduel {module_id}")
         # delete related contexts first
         context_id = self.get_context_id(module_id)
         ContextManager().remove(context_id)

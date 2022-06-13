@@ -31,6 +31,7 @@ if __name__=="__main__":
     # clear all modules and tasks
     if args.clear:
         mod_manager.clear()
+
     # register a new model
     if args.register is not None:
         #print("Register target : {}".format(args.register))

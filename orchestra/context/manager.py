@@ -20,6 +20,15 @@ class ContextManager:
         """Close connection to docker daemon
         """
         self.client.close()
+    def docker_prune(self):
+        """Prune unused images and containers
+        """
+        self.open_client()
+
+        self.client.containers.prune()
+        self.client.images.prune()
+
+        self.close_client()
     def build(self, context, tag="orchestra:latest"):
         """Build an image for a given context
         """
@@ -33,6 +42,9 @@ class ContextManager:
             with open("dockerfile","wb") as f:
                 f.write(dockerfile.read())
                 dockerfile.close()
+
+            # debug print dockerfile
+            #os.system("cat dockerfile")
 
             # move files to build context
             for f in context.files:
