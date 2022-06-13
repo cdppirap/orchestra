@@ -59,6 +59,18 @@ Start the REST server :
 python -m orchestra.rest
 ```
 
+#### Crontab
+Create a crontab rule to start the REST service at each reboot :
+```
+$ sudo su
+# crontab -e
+```
+
+Add the following rule at the end of the crontab file :
+```
+@reboot su -c '<path_to_orchestra_repo>/start_rest.sh' -s /bin/sh <username>
+```
+
 ### Testing
 Run tests to check that everything works : 
 ```
