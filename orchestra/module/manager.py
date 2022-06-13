@@ -93,18 +93,22 @@ class ModuleManager:
         conn = sqlite3.connect(config.database)
         cursor = conn.cursor()
         for row in cursor.execute(sql):
-            yield int(row[0]),ModuleInfo.from_json(row[1])
+            module_info = ModuleInfo.from_json(row[1])
+            print("Moodule info : ", module_info)
+            yield int(row[0]),module_info
         conn.commit()
         conn.close()
 
     def iter_tasks(self):
         """Task iterator, yields tuples (module_id, module_obj)
         """
+
         sql = "SELECT * FROM {} ORDER BY id".format(config.task_info_table)
         conn = sqlite3.connect(config.database)
         cursor = conn.cursor()
         for row in cursor.execute(sql):
-            yield int(row[0]),TaskInfo.from_json(row[1])
+            task_info = TaskInfo.from_json(row[1])
+            yield int(row[0]),task_info
         conn.commit()
         conn.close()
 
