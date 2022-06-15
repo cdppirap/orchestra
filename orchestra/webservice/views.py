@@ -9,6 +9,7 @@ from .forms import ModuleCreateForm
 # module info and manager
 from .module.info import ModuleInfo
 from .module.manager import ModuleManager
+from orchestra.context.manager import ContextManager
 
 # database
 from .db import get_db
@@ -18,6 +19,9 @@ from flask import current_app
 from flask_admin.contrib.sqla import ModelView
 
 class ModuleView(ModelView):
+    column_display_pk = True
+    column_sortable_list = None
+    column_searchable_list = ("name",)
     def create_form(self):
         form = ModuleCreateForm()
         return form
@@ -66,12 +70,10 @@ class ModuleView(ModelView):
                 db.session.commit()
                 os.chdir(current_dir)
                 return mod
-
-
-
-
-
-            
         r = super().create_model(form)
         print(f"\tcreate_model returns : {r}")
         return r
+    def after_model_delete(self, model):
+        # delete the context
+        print("Delete context : {model.context_id}")
+        ContextManager().remove(model.context_id)
