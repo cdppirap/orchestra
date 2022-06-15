@@ -29,16 +29,26 @@ def create_app(test_config=None):
     from .db import init_app, db
     init_app(app)
 
+    # login
+    from .auth import init_login
+    init_login(app)
+
     # administration
-    admin = Admin(name=__name__, template_mode="bootstrap3")
+    from .admin import OrchestraAdminIndexView
+    admin = Admin(name=__name__, template_mode="bootstrap3", index_view=OrchestraAdminIndexView())
     admin.init_app(app)
-    from .models import User, Module, Task
+    from .models import Module, Task
     from .views import ModuleView
+    from .auth.models import User
     admin.add_view(ModelView(User, db.session))
     admin.add_view(ModuleView(Module, db.session))
     admin.add_view(ModelView(Task, db.session))
 
     # register views
+
+    # blueprint for authentication views
+    #from .auth import auth as auth_blueprint
+    #app.register_blueprint(auth_blueprint)
 
     # REST API
     from .rest import init_app

@@ -15,8 +15,8 @@ from flask_restful import Resource, Api, reqparse
 from flask_basicauth import BasicAuth
 from werkzeug.exceptions import HTTPException
 
-from orchestra.module.info import ModuleInfo
-from orchestra.module.manager import ModuleManager
+from orchestra.webservice.module.info import ModuleInfo
+from orchestra.webservice.module.manager import ModuleManager
 
 # Database
 from flask_sqlalchemy import SQLAlchemy

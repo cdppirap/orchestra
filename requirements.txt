@@ -4,5 +4,6 @@ flask_admin
 flask_basicauth
 flask_sqlalchemy
 flask_wtf
+flask_login
 
 docker

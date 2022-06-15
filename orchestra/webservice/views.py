@@ -3,6 +3,9 @@ import zipfile
 import tempfile
 import json
 
+from flask import redirect, url_for, request
+import flask_login as login
+
 from .models import Module
 from .forms import ModuleCreateForm
 
@@ -22,6 +25,10 @@ class ModuleView(ModelView):
     column_display_pk = True
     column_sortable_list = None
     column_searchable_list = ("name",)
+    def is_accessible(self):
+        return login.current_user.is_authenticated
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for("login", next=request.url))
     def create_form(self):
         form = ModuleCreateForm()
         return form
