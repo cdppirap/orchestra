@@ -44,7 +44,7 @@ if __name__=="__main__":
             else:
                 if is_github_repository_address(target):
                     # clone the repository
-                    os.system("git clone -c http.sslVerify=0 {}".format(target))
+                    os.system("git clone -c http.sslVerify=0 {github_repo}")
                     repository_folder = os.path.basename(target).replace(".git", "")
                     metadata_path = os.path.join(repository_folder, "metadata.json")
                     mod = ModuleInfo(metadata_path)

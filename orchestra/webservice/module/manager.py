@@ -7,12 +7,19 @@ import pickle as pkl
 from multiprocessing import Process
 import subprocess
 
-from orchestra.module.info import ModuleInfo
+# database
+from ..db import get_db
+from ..models import Module, Task
+
+from ..module.info import ModuleInfo
+
 from orchestra.errors import ModuleIDNotFound
 from orchestra.environment import ModuleEnvironment
 
 from orchestra.context.manager import ContextManager
-from orchestra.tasks.info import TaskInfo, TaskStatus
+from ..task.info import TaskInfo, TaskStatus
+
+
 
 import orchestra.configuration as config
 
@@ -20,42 +27,10 @@ class ModuleManager:
     """Class for managing a collection of Module objects, start and stop tasks and more.
     """
     def __init__(self):
-        self.init_database()
         self.task_counter = 0
         self.tasks={}
         self.create_task_output_dir()
-    def create_module_info_table_query(self):
-        """Create the module info table
-        """
-        return "CREATE TABLE IF NOT EXISTS {} (id integer PRIMARY KEY, json TEXT NOT NULL, context_id TEXT NOT NULL);".format(
-                config.module_info_table)
-    def create_task_info_table_query(self):
-        """Create the task table query
-        """
-        return "CREATE TABLE IF NOT EXISTS {} (id integer PRIMARY KEY, json TEXT NOT NULL);".format(
-                config.task_info_table)
-    def execute_sql(self, query):
-        """Execute an SQL query that has not result
-        """
-        #print("EXEC : {}".format(query))
-        lastrowid=None
-        conn = sqlite3.connect(config.database)
-        cursor = conn.cursor()
-        cursor.execute(query)
-        if query.startswith("INSERT"):
-            lastrowid = cursor.lastrowid
-        conn.commit()
-        conn.close()
-        return lastrowid
- 
-    def init_database(self):
-        """Inialize the database, create the module info table
-        """
-        conn = self.get_database_connection()
-        # create tables if they do not exist
-        self.execute_sql(self.create_module_info_table_query())
-        self.execute_sql(self.create_task_info_table_query())
-    
+   
     def clear_contexts(self):
         """Delete all contexts
         """
@@ -89,29 +64,16 @@ class ModuleManager:
     def iter_modules(self):
         """Module iterator, yields tuples (module_id, module_obj)
         """
-        sql = "SELECT * FROM {} ORDER BY id".format(config.module_info_table)
-        conn = sqlite3.connect(config.database)
-        cursor = conn.cursor()
-        for row in cursor.execute(sql):
-            module_info = ModuleInfo.from_json(row[1])
-            print("Moodule info : ", module_info)
-            yield int(row[0]),module_info
-        conn.commit()
-        conn.close()
-
+        modules = Module.query.all()
+        for module in modules:
+            yield module.id, module.info()
+        
     def iter_tasks(self):
         """Task iterator, yields tuples (module_id, module_obj)
         """
-
-        sql = "SELECT * FROM {} ORDER BY id".format(config.task_info_table)
-        conn = sqlite3.connect(config.database)
-        cursor = conn.cursor()
-        for row in cursor.execute(sql):
-            task_info = TaskInfo.from_json(row[1])
-            yield int(row[0]),task_info
-        conn.commit()
-        conn.close()
-
+        tasks = Task.query.all()
+        for task in tasks:
+            yield task.id, task.info()
 
 
     def module_from_row(self, row):
@@ -156,23 +118,11 @@ class ModuleManager:
         print(f"Image tag : {image_tag}")
         context = module.get_context()
         context = ContextManager().build(context, tag = image_tag)
-
-        # save the module metadata
-        sql = "INSERT INTO {} (json, context_id) VALUES (?,?);".format(config.module_info_table)
+        print(f"\n\nContext id : {context.id}, {type(context.id)}\n\n")
 
         return module.metadata, context.id
 
-        conn = self.get_database_connection()
-        cursor = conn.cursor()
-        cursor.execute(sql, (json.dumps(module.metadata), context.id))
-        conn.commit()
-        conn.close()
-        if verbose:
-            sys.stdout.write("done\n".format(module))
-            sys.stdout.flush()
- 
-        return cursor.lastrowid
-        
+       
     def __getitem__(self, module_id):
         """Get a ModuleInfo object by id
         """
@@ -230,11 +180,18 @@ class ModuleManager:
     def save_task(self, task):
         """Save a task, if it doesn't have an id yet then return one, else update
         """
+        db = get_db()
         if task.id is None:
-            task.id = self.execute_sql(self.get_task_info_insert_query(task))
+            # create new task object
+            t = Task(json = json.dumps(task.data))
+            db.session.add(t)
+            db.session.flush()
+            db.session.refresh(t)
+            task.id = t.id
         else:
-            q=self.get_task_info_update_query(task)
-            self.execute_sql(q)
+            t = Task.query.get(task.id)
+            t.json = json.dumps(task.data)
+        db.session.commit()
         return task.id
 
 
@@ -283,14 +240,7 @@ class ModuleManager:
     def get_context_id(self, module_id):
         """Get a  module's context id
         """
-        sql = "SELECT context_id FROM {} WHERE id={}".format(config.module_info_table, module_id)
-        conn = self.get_database_connection()
-        cursor = conn.cursor()
-        a = [r for r in cursor.execute(sql)]
-        conn.commit()
-        conn.close()
-        return a[0][0]
-
+        return Module.query.get(module_id).context_id
 
     def run_module(self, task, verbose=False):
         """This function is called by the process in charge of executing the module. Code is executed
@@ -302,7 +252,9 @@ class ModuleManager:
         module_id = task["module_id"]
         module = self[module_id]
         # the module's execution context
+        print(f"Getting context id for module : {module_id}")
         context_id = self.get_context_id(module_id)
+        print(f"Got context_id : {context_id}")
         # get the command line to send to the container
         command = module.get_cli_command("/output", task["arguments"])
         task["cmd"] = command
@@ -315,6 +267,7 @@ class ModuleManager:
         task["start"] = time.time()
         self.save_task(task)
         try:
+            print(f"Before running module {context_id}")
             out = ContextManager().run(context_id, command, output_dir)
 
         except Exception as e:
@@ -346,12 +299,7 @@ class ModuleManager:
     def get_task(self, task_id):
         """Get task information
         """
-        sql = "SELECT json FROM {} WHERE id={}".format(config.task_info_table, task_id)
-        conn = self.get_database_connection()
-        cursor = conn.cursor()
-        ans=[r for r in cursor.execute(sql)]
-        conn.close()
-        return TaskInfo.from_json(ans[0][0])
+        return TaskInfo.from_json(Task.query.get(task_id).json)
 
     def kill_task(self, task_id):
         """Kill a task

@@ -52,11 +52,13 @@ class ContextManager:
             
             # build the image
             self.open_client()
+            image = None
             try:
                 image,logs = self.client.images.build(path=".", tag=tag, nocache=True)
             except Exception as e:
+                print("ERRRRRRRr")
                 print(e)
-                print(logs)
+                #print(logs)
 
             self.close_client()
 
@@ -67,6 +69,7 @@ class ContextManager:
     def run(self, context, command, output_dir):
         """Execute the module in its container
         """
+        print(f"In run : {context}")
         self.open_client()
         # create the mount
         m = docker.types.Mount(target="/output", source=os.path.abspath(output_dir), type="bind")

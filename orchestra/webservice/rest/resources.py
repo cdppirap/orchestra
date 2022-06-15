@@ -8,8 +8,8 @@ from flask_admin import Admin, AdminIndexView
 from flask_basicauth import BasicAuth
 from werkzeug.exceptions import HTTPException
 
-from orchestra.module.info import ModuleInfo
-from orchestra.module.manager import ModuleManager
+from ..module.info import ModuleInfo
+from ..module.manager import ModuleManager
 
 import orchestra.configuration as config
 
@@ -21,7 +21,6 @@ class ListModules(Resource):
     module that is currently registered
     """
     def get(self):
-        #manager = ModuleManager()
         return [{"id":k, "name":m.metadata["name"]} for k,m in manager.iter_modules()]
  
 class ShowModule(Resource):
