@@ -2,6 +2,7 @@ from wtforms import form, fields, validators
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from ..db import get_db
+from .models import User
 
 #db = get_db()
 

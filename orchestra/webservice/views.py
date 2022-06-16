@@ -22,9 +22,11 @@ from flask import current_app
 from flask_admin.contrib.sqla import ModelView
 
 class ModuleView(ModelView):
+    can_view_details = True
     column_display_pk = True
     column_sortable_list = None
     column_searchable_list = ("name",)
+    edit_modal = True
     def is_accessible(self):
         return login.current_user.is_authenticated
     def inaccessible_callback(self, name, **kwargs):
@@ -33,9 +35,6 @@ class ModuleView(ModelView):
         form = ModuleCreateForm()
         return form
     def create_model(self, form):
-        print("\n\nin ModuleView.create_model\n\n")
-        print(f"\tname : {form['name'].data}")
-        print(f"\tfile : {form['archive'].data}")
         f = form["archive"].data
         filename = f.filename
         if len(filename):
@@ -61,7 +60,6 @@ class ModuleView(ModelView):
         github_repo = form["repository"].data
         if len(github_repo):
             current_dir = os.getcwd()
-            print(f"current dir : {current_dir}")
             with tempfile.TemporaryDirectory() as temp_dir:
                 os.chdir(temp_dir)
                 os.system(f"git clone -c http.sslVerify=0 {github_repo}")
@@ -70,7 +68,6 @@ class ModuleView(ModelView):
                 mod_manager = ModuleManager()
                 module_info = ModuleInfo(metadata_path)
                 json_data, context_id = mod_manager.register_module(module_info)
-                print("JSON data : ", json_data, context_id)
                 mod = Module(name=json_data["name"], json=json.dumps(json_data), context_id=context_id)
                 db = get_db()
                 db.session.add(mod)
@@ -78,11 +75,9 @@ class ModuleView(ModelView):
                 os.chdir(current_dir)
                 return mod
         r = super().create_model(form)
-        print(f"\tcreate_model returns : {r}")
         return r
     def after_model_delete(self, model):
         # delete the context
-        print("Delete context : {model.context_id}")
         ContextManager().remove(model.context_id)
 
 class TaskView(ModelView):

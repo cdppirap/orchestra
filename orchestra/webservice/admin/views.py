@@ -3,10 +3,10 @@ import flask_admin as admin
 import flask_login as login
 from flask_admin import helpers, expose
 
-from .db import get_db
+from ..db import get_db
 
-from .auth.forms import *
-from .auth.models import User
+from ..auth.forms import *
+from ..auth.models import User
 
 class OrchestraAdminIndexView(admin.AdminIndexView):
     @expose("/")
