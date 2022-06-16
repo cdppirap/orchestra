@@ -1,3 +1,4 @@
+from flask import redirect, url_for
 from flask_admin import Admin
 from flask_admin.menu import MenuLink
 
@@ -19,5 +20,11 @@ def init_admin(app):
 
 
     admin.add_link(MenuLink(name="Logout", category="", url="/admin/logout"))
+
+
+    # route root URL to admin
+    @app.route("/")
+    def index():
+        return redirect(url_for("admin.index"))
 
 
