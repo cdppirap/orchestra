@@ -6,4 +6,7 @@ flask_sqlalchemy
 flask_wtf
 flask_login
 
+email_validator
+wtforms[email]
+
 docker

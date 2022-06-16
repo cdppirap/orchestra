@@ -20,11 +20,16 @@ class PasswordField(fields.StringField):
             self.data = self.orig_hash
 
 
+from wtforms import validators
 class UserView(ModelView):
     column_display_pk = True
     column_searchable_list = ("username",)
     form_overrides = dict(password=PasswordField)
     form_widget_args = dict(placeholder="Enter new password")
+    column_exclude_list = ["password"]
+    form_args = dict(
+                email=dict(label="Email", validators=[validators.DataRequired(), validators.Email()])
+            )
     def is_accessible(self):
         return login.current_user.is_authenticated
     def inaccessible_callback(self, name, **kwargs):
