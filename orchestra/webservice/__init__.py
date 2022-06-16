@@ -38,11 +38,16 @@ def create_app(test_config=None):
     admin = Admin(name=__name__, template_mode="bootstrap3", index_view=OrchestraAdminIndexView())
     admin.init_app(app)
     from .models import Module, Task
-    from .views import ModuleView
+    from .views import ModuleView, TaskView
     from .auth.models import User
-    admin.add_view(ModelView(User, db.session))
+    from .auth.views import UserView
+    admin.add_view(UserView(User, db.session))
     admin.add_view(ModuleView(Module, db.session))
-    admin.add_view(ModelView(Task, db.session))
+    admin.add_view(TaskView(Task, db.session))
+
+    from flask_admin.menu import MenuLink
+
+    admin.add_link(MenuLink(name="Logout", category="", url="/admin/logout"))
 
     # register views
 

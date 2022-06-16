@@ -84,3 +84,10 @@ class ModuleView(ModelView):
         # delete the context
         print("Delete context : {model.context_id}")
         ContextManager().remove(model.context_id)
+
+class TaskView(ModelView):
+    def is_accessible(self):
+        return login.current_user.is_authenticated
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for("login", next=request.url))
+ 
