@@ -1,0 +1,27 @@
+{% extends "admin/model/details.html" %}
+
+{% block details_table %}
+  <table class="table table-hover table-bordered searchable">
+  {% for c, name in details_columns %}
+    <tr>
+	    <td>
+		    <b>{{ name }}</b>
+	    </td>
+            <td> 
+		    {{ get_value(model, c) }}
+            </td>
+    </tr>
+  {% endfor %}
+  {% if model.status=='done' %}
+    <tr>
+	    <td><b>Execution time (s)</b></td>
+	    <td>{{ model.stop - model.start }}</td>
+    </tr>
+    <tr>
+	    <td>
+		    <a href="{{ url_for('taskoutput', task_id=model.id) }}"><b>Download output</b></a>
+	    </td>
+      </tr>
+  {% endif %}
+  </table>
+{% endblock %}

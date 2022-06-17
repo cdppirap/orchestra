@@ -9,6 +9,8 @@ from ..models import Module, Task
 from ..views import ModuleView, TaskView
 from ..auth.models import User
 from ..auth.views import UserView
+
+from .menu import LogoutMenuLink
  
 def init_admin(app):
     from ..db import init_app, db
@@ -19,7 +21,7 @@ def init_admin(app):
     admin.add_view(TaskView(Task, db.session))
 
 
-    admin.add_link(MenuLink(name="Logout", category="", url="/admin/logout"))
+    admin.add_link(LogoutMenuLink(name="Logout", category="", url="/admin/logout"))
 
 
     # route root URL to admin

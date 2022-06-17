@@ -85,16 +85,12 @@ class ModuleManager:
     def __contains__(self, module_id):
         """Check if a module is installed, the input can be either the modules id or a ModuleInfo object
         """
-        sql = "SELECT * FROM {} WHERE id={}".format(config.module_info_table, module_id)
-        conn = self.get_database_connection()
-        cursor = conn.cursor()
-        ans = [r for r in cursor.execute(sql)]
-        conn.close()
-        return len(ans)>0
+        return Module.query.get(module_id) is not None
 
     def __len__(self):
         """Get number of installed modules
         """
+        return Module.query.count()
         sql = "SELECT count(id) FROM {}".format(config.module_info_table)
         conn = self.get_database_connection()
         cursor = conn.cursor()
@@ -126,16 +122,7 @@ class ModuleManager:
     def __getitem__(self, module_id):
         """Get a ModuleInfo object by id
         """
-        sql = "SELECT * FROM {} WHERE id={}".format(config.module_info_table, module_id)
-        conn = self.get_database_connection()
-        cursor = conn.cursor()
-        ans=[r for r in cursor.execute(sql)]
-        conn.close()
-        if len(ans)==0:
-            raise ModuleIDNotFound(module_id)
-        m=ModuleInfo.from_json(ans[0][1])
-        m.set_id(module_id)
-        return m
+        return Module.query.get(module_id).info()
 
     def remove_module(self, module_id):
         """Remove a module
@@ -183,14 +170,15 @@ class ModuleManager:
         db = get_db()
         if task.id is None:
             # create new task object
-            t = Task(json = json.dumps(task.data))
+            t = Task()
+            t.load_json(task.data)
             db.session.add(t)
             db.session.flush()
             db.session.refresh(t)
             task.id = t.id
         else:
             t = Task.query.get(task.id)
-            t.json = json.dumps(task.data)
+            t.load_json(task.data)
         db.session.commit()
         return task.id
 
@@ -299,7 +287,7 @@ class ModuleManager:
     def get_task(self, task_id):
         """Get task information
         """
-        return TaskInfo.from_json(Task.query.get(task_id).json)
+        return Task.query.get(task_id).info()
 
     def kill_task(self, task_id):
         """Kill a task

@@ -82,7 +82,9 @@ class ModuleInfo:
     def from_json(json_data):
         """Load a ModuleInfo object from JSON data structure
         """
-        return ModuleInfo(metadata=json.loads(json_data))
+        if isinstance(json_data, str):
+            return ModuleInfo(metadata=json.loads(json_data))
+        return ModuleInfo(metadata=json_data)
     def get_requirements(self):
         if self.path is None:
             return []

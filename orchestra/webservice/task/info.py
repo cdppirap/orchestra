@@ -41,7 +41,10 @@ class TaskInfo:
     @staticmethod
     def from_json(json_data):
         t = TaskInfo(-1,{})
-        t.data = json.loads(json_data)
+        if isinstance(json_data, str):
+            t.data = json.loads(json_data)
+        else:
+            t.data = json_data
         if "id" in t.data:
             t.id = t.data["id"]
         return t
