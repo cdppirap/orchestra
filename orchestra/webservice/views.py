@@ -37,6 +37,13 @@ class ModuleView(ModelView):
             ]
     @expose("/test", methods=("GET",))
     def test_view(self):
+        print("Testing celery task")
+        from orchestra.webservice.tasks import long_task
+        r = long_task.delay(10)
+        r.wait()
+        print(f"TAsk result : {r}")
+
+
         module_id = request.args["id"]
         mod = Module.query.get(module_id)
         run_url = url_for("runmodule", module_id=module_id,**json.loads(mod.default_args), _external=True)

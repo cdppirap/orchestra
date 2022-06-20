@@ -6,6 +6,12 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 
+from flask_celeryext import FlaskCeleryExt
+from .celery_utils import make_celery
+ext_celery = FlaskCeleryExt(create_celery_app=make_celery)
+
+from . import tasks
+
 def create_app(test_config=None):
     app = Flask(__name__)
     # application configuration
@@ -13,6 +19,10 @@ def create_app(test_config=None):
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
     app.config["SECRET_KEY"]="dev"
+
+    # celery
+    app.config["CELERY_BROKER_URL"] = "redis://127.0.0.1:6379/0"
+    app.config["CELERY_RESULT_BACKEND"] = "redis://127.0.0.1:6379/0"
 
     if test_config is None:
         app.config.from_pyfile("config.py", silent=True)
@@ -40,6 +50,13 @@ def create_app(test_config=None):
     # REST API
     from .rest import init_app
     init_app(app)
+
+    # celery
+    ext_celery.init_app(app)
+
+    @app.shell_context_processor
+    def ctx():
+        return {"app":app, "db": db}
     
     return app
 
