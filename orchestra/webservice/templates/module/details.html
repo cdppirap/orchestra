@@ -1,0 +1,22 @@
+{% extends "admin/model/details.html" %}
+
+{% block details_table %}
+  <table class="table table-hover table-bordered searchable">
+  {% for c, name in details_columns %}
+    <tr>
+	    <td>
+		    <b>{{ name }}</b>
+	    </td>
+            <td> 
+		    {{ get_value(model, c) }}
+            </td>
+    </tr>
+  {% endfor %}
+  {% if model.status=='installed' %}
+    <tr>
+	    <td><a href="{{ url_for('module.test_view', id=model.id) }}"><b>Run with default arguments</b></a></td>
+	    <td></td>
+    </tr>
+  {% endif %}
+  </table>
+{% endblock %}

@@ -216,12 +216,14 @@ class ModuleManager:
         task["output_dir"] = self.create_task_dir(task_id)
 
         # clean task list
-        self.clean_tasks()
+        #self.clean_tasks()
         
         # start the process
-        process = Process(target = self.run_module, args = (task,))
-        self.tasks[task_id]=process
-        self.tasks[task_id].start()
+        #process = Process(target = self.run_module, args = (task,))
+        #self.tasks[task_id]=process
+        #self.tasks[task_id].start()
+
+        self.save_task(task)
 
         return task_id
 
@@ -261,6 +263,7 @@ class ModuleManager:
         except Exception as e:
             task["status"]=TaskStatus.ERROR
             task["error"] = str(e).replace("\'", "\"")
+            task["celery_id"] = None
             self.save_task(task)
             #print("OUT ", out)
             raise Exception("Module run error {}".format(e))
@@ -268,6 +271,7 @@ class ModuleManager:
         # terminate the task at this point
         task["stop"]=time.time()
         task["status"]= TaskStatus.DONE
+        task["celery_id"] = None
         self.save_task(task)
         return 
 
@@ -275,10 +279,7 @@ class ModuleManager:
         """Check if a task exists by id
         """
         tid = int(task_id)
-        #print("has task : {}, {}".format(task_id, self.list_tasks()))
         r=tid in [t.id for t in self.list_tasks()]
-        #print(r)
-        #print([t.id for t in self.list_tasks()])
         return r
     def list_tasks(self):
         """Return list of tasks
@@ -292,10 +293,11 @@ class ModuleManager:
     def kill_task(self, task_id):
         """Kill a task
         """
-        task = self.tasks[task_id]
-        task.kill()
-        del self.tasks[task_id]
-        task_output_path = os.path.join(task_outputs, "task_{}".format(task_id))
+        task = Task.query.get(task_id)
+        if task.celery_id:
+            from celery import current_app
+            current_app.control.revoke(task.celery_id, terminate=True)
+        task_output_path = os.path.join(config.task_directory, "task_{}".format(task_id))
         self.forcefully_remove_directory(task_output_path)
     def remove_task(self, task_id):
         """Remove a task directory, the task should be done

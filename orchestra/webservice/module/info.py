@@ -4,6 +4,25 @@ import json
 from orchestra.context import PythonRequirements, PythonContext
 
 mandatory_fields = ["name", "description", "args", "hyperparameters", "output", "defaults", "install"]
+
+class ModuleInstallationInfo:
+    """Class used for storing the installation information needed to create a new module
+    """
+    def __init__(self, module_id, filename=None, git=None, metadata=None):
+        self.module_id = module_id
+        self.filename = filename
+        self.git = git
+        self.metadata = metadata
+    def to_json(self):
+        return {"module_id": self.module_id,
+                "filename": self.filename,
+                "git": self.git,
+                "metadata": self.metadata,
+                }
+    @staticmethod
+    def from_json(data):
+        return ModuleInstallationInfo(**data)
+
 class ModuleInfo:
     def __init__(self, filename=None, metadata=None):
         # initialize metadata
@@ -12,11 +31,16 @@ class ModuleInfo:
         self.path = None
         if metadata is not None:
             self.metadata=metadata
+            if "id" in metadata:
+                self.set_id(metadata["id"])
         # if a filename is given then load from file
         if filename is not None:
             self.path = os.path.dirname(filename)
             with open(filename , "r") as f:
                 self.metadata = json.load(f)
+                if "id" in self.metadata:
+                    self.set_id(self.metadata["id"])
+
     def argument_string(self, args):
         """String of space separated values
         """
@@ -55,7 +79,7 @@ class ModuleInfo:
         """
         return "ModuleInfo (name={}, executable={})".format(self.metadata["name"], self.metadata["install"]["executable"])
 
-    def get_data(self):
+    def et_data(self):
         """Get the metadata
         """
         return self.metadata

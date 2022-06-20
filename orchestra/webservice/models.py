@@ -14,15 +14,15 @@ class Module(db.Model):
     __tablename__="module"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True, nullable=True)
-    description = db.Column(db.Text, nullable=False)
-    arguments = db.Column(db.Text, nullable=False)
-    hyperparameters = db.Column(db.Text, nullable=False)
-    default_args = db.Column(db.Text, nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    arguments = db.Column(db.Text, nullable=True)
+    hyperparameters = db.Column(db.Text, nullable=True)
+    default_args = db.Column(db.Text, nullable=True)
     #default_hyperargs = db.Column(db.Text, nullable=False)
-    output = db.Column(db.Text, nullable=False)
-    install = db.Column(db.Text, nullable=False)
-    status = db.Column(db.String(48), nullable=False, default="pending")
-    context_id = db.Column(db.String(128), nullable=False)
+    output = db.Column(db.Text, nullable=True)
+    install = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(48), nullable=True, default="pending")
+    context_id = db.Column(db.String(128), nullable=True)
     debug_flag = db.Column(db.Boolean, default=True)
     
     tasks = db.relationship("Task", backref=db.backref("module", lazy=True))
@@ -68,10 +68,7 @@ class Task(db.Model):
     arguments = db.Column(db.Text)
     output_dir = db.Column(db.String(1024))
     command = db.Column(db.String(1024))
-
-    #module_id = db.Column(db.Integer)
-    #status = db.Column(db.String(80), nullable=False)
-    #json = db.Column(db.Text, nullable=False)
+    celery_id = db.Column(db.String(256))
 
     def to_json(self):
         return {"id": self.id,
@@ -82,6 +79,7 @@ class Task(db.Model):
                 "arguments": json.loads(self.arguments),
                 "output_dir": self.output_dir,
                 "cmd": self.command,
+                "celery_id": self.celery_id,
                 }
     def load_json(self, data):
         print(data)
@@ -95,6 +93,10 @@ class Task(db.Model):
         self.status = data["status"]
         self.module_id = data["module_id"]
         self.arguments = json.dumps(data["arguments"])
+        if "celery_id" in data:
+            self.celery_id = data["celery_id"]
+        else:
+            self.celery_id = None
         if "output_dir" in data:
             self.output_dir = data["output_dir"]
         else:

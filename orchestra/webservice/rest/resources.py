@@ -1,6 +1,6 @@
 import os
 import json
-
+import time
 
 from flask import Flask, request, send_from_directory, redirect, Response
 from flask_restful import Resource, Api, reqparse
@@ -8,10 +8,15 @@ from flask_admin import Admin, AdminIndexView
 from flask_basicauth import BasicAuth
 from werkzeug.exceptions import HTTPException
 
+from ..models import Task
+from ..db import get_db
+
 from ..module.info import ModuleInfo
 from ..module.manager import ModuleManager
 
 import orchestra.configuration as config
+
+from .. import tasks as _tasks
 
 manager = ModuleManager()
 
@@ -66,6 +71,7 @@ class RunModule(Resource):
         run_arguments = self.get_run_arguments(module_id)
         # start a run task with the manager
         task_id=manager.start_task(module_id, run_arguments)
+        _tasks.run_module.delay({"task_id":task_id, "args": run_arguments})
         return {"status":"running", "task":task_id}
 
 class ListTasks(Resource):
@@ -139,6 +145,11 @@ class KillTask(Resource):
     """
     def get(self, task_id):
         manager.kill_task(int(task_id))
+        task = Task.query.get(task_id)
+        task.celery_id = None
+        task.status = "terminated"
+        task.stop = time.time()
+        get_db().session.commit()
         return {}
     def post(self, task_id):
         return self.get(task_id)

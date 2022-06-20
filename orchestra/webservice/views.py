@@ -1,22 +1,26 @@
 import os
-import zipfile
-import tempfile
 import json
 import urllib
+import uuid
+from datetime import datetime
 
-from flask import redirect, url_for, request
+from flask import redirect, url_for, request, flash
 import flask_login as login
+from flask_admin.babel import gettext, ngettext
 
 from .models import Module, Task
 from .forms import ModuleCreateForm
 
 # module info and manager
-from .module.info import ModuleInfo
+from .module.info import ModuleInstallationInfo
 from .module.manager import ModuleManager
 from orchestra.context.manager import ContextManager
 
 # database
 from .db import get_db
+
+# celery tasks
+from . import tasks
 
 
 from flask import current_app
@@ -30,6 +34,9 @@ class ModuleView(ModelView):
     column_sortable_list = None
     column_searchable_list = ("name",)
     edit_modal = True
+    details_template = "module/details.html"
+    can_set_page_size = True
+
 
     # added test action
     column_extra_row_actions = [
@@ -37,19 +44,11 @@ class ModuleView(ModelView):
             ]
     @expose("/test", methods=("GET",))
     def test_view(self):
-        print("Testing celery task")
-        from orchestra.webservice.tasks import long_task
-        r = long_task.delay(10)
-        r.wait()
-        print(f"TAsk result : {r}")
-
-
         module_id = request.args["id"]
         mod = Module.query.get(module_id)
         run_url = url_for("runmodule", module_id=module_id,**json.loads(mod.default_args), _external=True)
         with urllib.request.urlopen(run_url) as f:
             task_data = json.loads(f.read().decode("utf8"))
-            print(task_data)
             return redirect(url_for("task.details_view", id=task_data["task"]))
 
         return redirect(url_for(".index_view"))
@@ -64,55 +63,60 @@ class ModuleView(ModelView):
         form = ModuleCreateForm()
         return form
     def create_model(self, form):
+        """Create the new Module object, form data should have been validated at this point.
+        A new empty Module object is created with a pending status. The registration process
+        will update its status to installed or error after building the execution context.
+        """
+        # database connection
+        db = get_db()
+        # add a pending Module object
+        temp_name = "TempModule_" + uuid.uuid4().hex[:4].upper()
+        new_mod = Module(status="pending", name=temp_name)
+        # save the new Module
+        db.session.add(new_mod)
+        db.session.commit()
+        db.session.refresh(new_mod)
+        # at this point the Module object should have a new id
+
+        # create the ModuleInstallationInfo object and pass it to the ModuleManager object for registration
         f = form["archive"].data
         filename = f.filename
         if len(filename):
+            # an archive containing the module data was passed in the form, the file has already been saved by the validation process
             target_filename = os.path.join(current_app.instance_path, "archive", filename)
-            f.save(target_filename)
-            # unzip the file and register the module
-            with zipfile.ZipFile(target_filename, "r") as zip_ref:
-                # create a temporary directory in which to unzip
-                with tempfile.TemporaryDirectory() as temp_dir:
-                    zip_ref.extractall(temp_dir)
-                    # register module
-                    metadata_path = os.path.join(temp_dir, "metadata.json")
-                    module_info = ModuleInfo(metadata_path)
-                    mod_manager = ModuleManager()
-                    json_data, context_id = mod_manager.register_module(module_info)
-                    # save a new Module object to the database
-                    mod = Module(context_id=context_id)
-                    mod.load_json(json_data)
-                    #mod = Module(name=json_data["name"], json=json.dumps(json_data), context_id=context_id)
-                    db = get_db()
-                    db.session.add(mod)
-                    db.session.commit()
-                    return mod
+            #f.save(target_filename)
+            # create the ModuleInstallationInfo object
+            module_install = ModuleInstallationInfo(module_id=new_mod.id,
+                    filename=target_filename)
+            # launch registration task
+            print(module_install.to_json(), type(module_install.to_json()))
+            tasks.register_module.delay(module_install.to_json())
+            return new_mod
+
+           
         # github repository
         github_repo = form["repository"].data
         if len(github_repo):
-            current_dir = os.getcwd()
-            with tempfile.TemporaryDirectory() as temp_dir:
-                os.chdir(temp_dir)
-                os.system(f"git clone -c http.sslVerify=0 {github_repo}")
-                repository_folder = os.path.basename(github_repo).replace(".git", "")
-                metadata_path = os.path.join(repository_folder, "metadata.json")
-                mod_manager = ModuleManager()
-                module_info = ModuleInfo(metadata_path)
-                json_data, context_id = mod_manager.register_module(module_info)
-                mod = Module(context_id=context_id)
-                mod.load_json(json_data)
-                db = get_db()
-                db.session.add(mod)
-                db.session.commit()
-                os.chdir(current_dir)
-                return mod
+            print("\nRegister from Git\n")
+            # module information is in a github repository
+            module_install = ModuleInstallationInfo(module_id=new_mod.id,
+                    git=github_repo)
+
+            # launch registration task
+            tasks.register_module.delay(module_install.to_json())
+            return new_mod
+
         r = super().create_model(form)
         return r
+
     def after_model_delete(self, model):
         # delete the context
         ContextManager().remove(model.context_id)
 
 class TaskView(ModelView):
+    page_size = 20
+    can_delete = False
+    can_set_page_size = True
     can_view_details = True
     column_display_pk = True
     column_sortable_list = None
@@ -124,8 +128,51 @@ class TaskView(ModelView):
     details_template = "task/details.html"
     # added output download action
     column_extra_row_actions = [
+            EndpointLinkRowAction("glyphicon glyphicon-trash", ".delete_view", "Delete task"),
             EndpointLinkRowAction("glyphicon glyphicon-download-alt", ".output_view", "Download task output"),
+            EndpointLinkRowAction("glyphicon glyphicon-remove", ".kill_view", "Kill task"),
             ]
+    def start_formatter(view, context, model, name):
+        return datetime.fromtimestamp(model.start).strftime("%Y-%m-%d %H:%M:%S.%f")
+    def stop_formatter(view, context, model, name):
+        if model.stop:
+            return datetime.fromtimestamp(model.stop).strftime("%Y-%m-%d %H:%M:%S.%f")
+        return ""
+
+    column_formatters = {"start": start_formatter,
+            "stop": stop_formatter,
+            }
+
+
+
+    @expose("/kill", methods=("GET",))
+    def kill_view(self):
+        task_id = request.args["id"]
+        task = Task.query.get(task_id)
+        if task.status in ["done", "terminated"]:
+            flash(f"Task {task.id} is not running and cannot be killed.")
+        else:
+            run_url = url_for("killtask", task_id=task_id, _external=True)
+            with urllib.request.urlopen(run_url) as f:
+                task_data = json.loads(f.read().decode("utf8"))
+                return redirect(url_for("task.details_view", id=task_id))
+
+        return redirect(url_for("task.index_view"))
+
+    @expose("/delete_task", methods=("GET",))
+    def delete_view(self):
+        task_id = request.args["id"]
+        task = Task.query.get(task_id)
+        if task.status in ["done", "terminated"]:
+            super().delete_model(task)
+            flash(gettext('Task was successfully deleted.'), 'success')
+
+            #flash(f"Task {task.id} is not running and cannot be killed.")
+        else:
+            flash(gettext('Cannot delete a running task. Terminate it or wait until task is done.'), 'error')
+        return redirect(url_for("task.index_view"))
+
+
     @expose("/output", methods=("GET",))
     def output_view(self):
         print(current_app.url_map)
@@ -139,4 +186,8 @@ class TaskView(ModelView):
         return login.current_user.is_authenticated
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for("admin.login_view", next=request.url))
+    def after_model_delete(self, model):
+        # delete the context
+        ModuleManager().remove_task(model.id)
+
  

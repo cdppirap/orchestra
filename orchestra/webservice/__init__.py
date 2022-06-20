@@ -54,6 +54,11 @@ def create_app(test_config=None):
     # celery
     ext_celery.init_app(app)
 
+    # add some functions for jinja2 templates
+    import time
+    app.jinja_env.globals.update(running_time=lambda t: time.time() - t)
+
+
     @app.shell_context_processor
     def ctx():
         return {"app":app, "db": db}

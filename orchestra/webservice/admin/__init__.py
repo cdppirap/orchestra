@@ -2,6 +2,9 @@ from flask import redirect, url_for
 from flask_admin import Admin
 from flask_admin.menu import MenuLink
 
+# redis console
+#from redis import Redis
+#from flask_admin.contrib import rediscli
 
 from .views import OrchestraAdminIndexView
 
@@ -19,6 +22,9 @@ def init_admin(app):
     admin.add_view(UserView(User, db.session))
     admin.add_view(ModuleView(Module, db.session))
     admin.add_view(TaskView(Task, db.session))
+
+    # redis
+    #admin.add_view(rediscli.RedisCli(Redis()))
 
 
     admin.add_link(LogoutMenuLink(name="Logout", category="", url="/admin/logout"))

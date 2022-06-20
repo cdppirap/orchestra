@@ -22,6 +22,18 @@
 		    <a href="{{ url_for('taskoutput', task_id=model.id) }}"><b>Download output</b></a>
 	    </td>
       </tr>
+  {% elif model.status=='running' %}
+    <tr>
+	    <td><b>Running time (s)</b></td>
+	    <td>{{ running_time(model.start) }}</td>
+    </tr>
+    <tr>
+	    <td>
+		    <a href="{{ url_for('task.kill_view', id=model.id) }}"><b>Kill task</b></a>
+	    </td>
+      </tr>
+
+
   {% endif %}
   </table>
 {% endblock %}
