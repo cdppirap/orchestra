@@ -73,7 +73,7 @@ class Module(db.Model):
         self.output = json.dumps(data["output"])
 
         # module install data
-        self.python_version = data["install"]["python_version"]
+        self.python_version = data["install"].get("python_version","3.8")
         self.requirements = data["install"]["requirements"]
         self.files = json.dumps(data["install"]["files"])
         self.executable = data["install"]["executable"]
