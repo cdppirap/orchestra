@@ -53,11 +53,14 @@ def register_module(module_install_data):
                 # register module
                 metadata_path = os.path.join(temp_dir, "metadata.json")
                 module_info = ModuleInfo(metadata_path)
+                module = Module.query.get(module_info.id)
+                module.name = module_info.metadata["name"]
+                db.session.commit()
+
                 module_info.set_id(module_install.module_id)
                 # register the module
                 mdata, context_id = module_manager.register_module(module_info)
                 # update the module object
-                module = Module.query.get(module_info.id)
                 module.load_json(mdata)
                 module.context_id = context_id
                 if context_id is not None:
@@ -77,10 +80,13 @@ def register_module(module_install_data):
             metadata_path = os.path.join(repository_folder, "metadata.json")
             module_info = ModuleInfo(metadata_path)
             module_info.set_id(module_install.module_id)
+            module = Module.query.get(module_info.id)
+            module.name = module_info.metadata["name"]
+            db.session.commit()
+
             # register the module
             mdata, context_id = module_manager.register_module(module_info)
             # update the module object
-            module = Module.query.get(module_info.id)
             module.load_json(mdata)
             module.context_id = context_id
             if context_id is not None:
