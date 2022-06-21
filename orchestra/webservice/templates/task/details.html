@@ -13,6 +13,19 @@
     </tr>
   {% endfor %}
 
+  {% if model.status=='done' %}
+    <tr>
+	    <td><b>Execution time (s)</b></td>
+	    <td>{{ model.stop - model.start }}</td>
+    </tr>
+  {% elif model.status=='running' %}
+    <tr>
+	    <td><b>Running time (s)</b></td>
+	    <td>{{ running_time(model.start) }}</td>
+    </tr>
+
+  {% endif %}
+
     <tr>
 	    <td><b>Actions</b></td>
 	    <td>
