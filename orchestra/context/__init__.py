@@ -29,7 +29,7 @@ class PythonContext:
         self.post_process = post_process
     def __str__(self):
         return "PythonContext (version={}, requirements={}, files={})".format(self.python_version, self.requirements, self.files)
-    def to_dockerfile(self):
+    def to_dockerfile(self, as_string=False):
         # all files must be moved to a temporary directory within the build context
         content = """FROM python:{}-slim-buster
 RUN useradd --create-home --no-log-init --shell /bin/bash --uid {} {}
@@ -48,6 +48,8 @@ WORKDIR /home/{}""".format(self.python_version, config.docker_user_uid, config.d
         if len(self.post_process):
             for p in self.post_process:
                 content += "\n"+p
+        if as_string:
+            return content
         return BytesIO(bytearray(content.encode()))
     def pip_str(self):
         return self.requirements.pip_str()

@@ -79,7 +79,7 @@ class ModuleInfo:
         """
         return "ModuleInfo (name={}, executable={})".format(self.metadata["name"], self.metadata["install"]["executable"])
 
-    def et_data(self):
+    def get_data(self):
         """Get the metadata
         """
         return self.metadata
@@ -118,6 +118,10 @@ class ModuleInfo:
             req=[r for r in f.read().split("\n") if len(r)]
         return req
     def get_files(self):
+        print(self.metadata)
+        print(self.path, self.metadata["install"]["files"])
+        if self.path is None:
+            return self.metadata["install"]["files"]
         return [os.path.abspath(os.path.join(self.path, f)) for f in self.metadata["install"]["files"]]
     def get_context(self):
         requ = PythonRequirements(self.get_requirements())
@@ -132,6 +136,8 @@ class ModuleInfo:
         return self.metadata["install"]["python_version"]
     def get_post_process(self):
         if "post_process" not in self.metadata["install"]:
+            return []
+        if self.metadata["install"]["post_process"] is None:
             return []
         return self.metadata["install"]["post_process"]
 

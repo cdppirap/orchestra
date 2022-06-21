@@ -29,9 +29,6 @@ def run_module(task_data):
     db = get_db()
     # get task info
     task = Task.query.get(task_data["task_id"])
-    print(f"Task data : {task_data}")
-    print(f"Task model : {task}")
-    print(f"Celery id : {run_module.request.id}, {type(run_module.request.id)}, {len(run_module.request.id)}")
     task.celery_id = run_module.request.id
     db.session.commit()
     # create the TaskInfo object
@@ -43,7 +40,6 @@ def run_module(task_data):
 def register_module(module_install_data):
     """Module registration task
     """
-    print("Module install data : ", module_install_data)
 
     module_install = ModuleInstallationInfo.from_json(module_install_data)
     module_manager = ModuleManager()
@@ -64,7 +60,11 @@ def register_module(module_install_data):
                 module = Module.query.get(module_info.id)
                 module.load_json(mdata)
                 module.context_id = context_id
-                module.status = "installed"
+                if context_id is not None:
+                    module.status = "installed"
+                    db.session.commit()
+                else:
+                    module.status = "error"
 
 
                         
@@ -83,7 +83,12 @@ def register_module(module_install_data):
             module = Module.query.get(module_info.id)
             module.load_json(mdata)
             module.context_id = context_id
-            module.status = "installed"
+            if context_id is not None:
+                module.status = "installed"
+            else:
+                module.status = "error"
+
+            db.session.commit()
 
 
             # move back to original directory

@@ -61,10 +61,10 @@ class ModuleManager:
         # remove all task outputs 
         os.system("rm -rf {}".format(os.path.join(config.task_directory,"*")))
 
-    def iter_modules(self):
+    def iter_modules(self, status="installed"):
         """Module iterator, yields tuples (module_id, module_obj)
         """
-        modules = Module.query.all()
+        modules = Module.query.where(Module.status == status)
         for module in modules:
             yield module.id, module.info()
         
@@ -114,9 +114,16 @@ class ModuleManager:
         print(f"Image tag : {image_tag}")
         context = module.get_context()
         context = ContextManager().build(context, tag = image_tag)
-        print(f"\n\nContext id : {context.id}, {type(context.id)}\n\n")
+        if "error" in context:
+            # set the metadata
+            module.metadata["status"] = "error"
+            module.metadata["install_errors"] = context["error"]
+            return module.metadata, None
 
-        return module.metadata, context.id
+        image = context["image"]
+        print("In register module metadata: ", module.metadata)
+
+        return module.metadata, image.id
 
        
     def __getitem__(self, module_id):

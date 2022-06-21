@@ -1,14 +1,15 @@
 import os
+import io
 import json
 import urllib
 import uuid
 from datetime import datetime
 
-from flask import redirect, url_for, request, flash
+from flask import redirect, url_for, request, flash, send_file
 import flask_login as login
 from flask_admin.babel import gettext, ngettext
 
-from .models import Module, Task
+from .models import Module, Task, ModuleInfo
 from .forms import ModuleCreateForm
 
 # module info and manager
@@ -32,10 +33,25 @@ class ModuleView(ModelView):
     can_view_details = True
     column_display_pk = True
     column_sortable_list = None
-    column_searchable_list = ("name",)
+    column_searchable_list = ("name","status",)
     edit_modal = True
     details_template = "module/details.html"
     can_set_page_size = True
+    column_exclude_list = ("install_errors","arguments","hyperparameters","default_args","install",
+            "context_id", "output",)
+
+    def description_formatter(view, context, model, name):
+        if model.description is None:
+            return ""
+        if len(model.description)<30:
+            return model.description
+        return model.description[:27] + "..."
+    column_formatters = {
+            "description": description_formatter,
+            }
+    column_formatters_detail = {
+            "description": None,
+            }
 
 
     # added test action
@@ -46,12 +62,41 @@ class ModuleView(ModelView):
     def test_view(self):
         module_id = request.args["id"]
         mod = Module.query.get(module_id)
+        if mod.status != "installed":
+            flash("Cannot run a module that is not installed.", "error")
+            return redirect(url_for(".index_view"))
         run_url = url_for("runmodule", module_id=module_id,**json.loads(mod.default_args), _external=True)
         with urllib.request.urlopen(run_url) as f:
             task_data = json.loads(f.read().decode("utf8"))
             return redirect(url_for("task.details_view", id=task_data["task"]))
 
         return redirect(url_for(".index_view"))
+    @expose("/dockerfile", methods=("GET",))
+    def dockerfile_view(self):
+        module_id = request.args["id"]
+        module = Module.query.get(module_id)
+        module_info = module.info()
+        context = module_info.get_context()
+        dockerfile = context.to_dockerfile()
+        return send_file(dockerfile, as_attachment=True, attachment_filename=f"{module.name}.docker", mimetype="text/txt")
+    @expose("/requirements", methods=("GET",))
+    def requirements_view(self):
+        module_id = request.args["id"]
+        module = Module.query.get(module_id)
+        try:
+            f = io.BytesIO("\n".join([json.loads(module.requirements)]).encode())
+        except:
+            f = io.BytesIO("requirements".encode())
+        return send_file(f, as_attachment=True, attachment_filename="requirements.txt", mimetype="text/txt")
+    @expose("/metadata", methods=("GET",))
+    def metadata_view(self):
+        module_id = request.args["id"]
+        module = Module.query.get(module_id)
+        f = io.BytesIO(json.dumps(module.to_json(), indent=4).encode())
+        return send_file(f, as_attachment=True, attachment_filename="metadata.json", mimetype="text/txt")
+
+        
+
 
     def is_accessible(self):
         return login.current_user.is_authenticated

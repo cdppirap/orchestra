@@ -5,10 +5,12 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import current_app, g
 
 #db = SQLAlchemy()
-from .db import db
+from .db import db, get_db
 
 from .module.info import ModuleInfo
 from .task.info import TaskInfo
+
+
 
 class Module(db.Model):
     __tablename__="module"
@@ -20,10 +22,19 @@ class Module(db.Model):
     default_args = db.Column(db.Text, nullable=True)
     #default_hyperargs = db.Column(db.Text, nullable=False)
     output = db.Column(db.Text, nullable=True)
-    install = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(48), nullable=True, default="pending")
     context_id = db.Column(db.String(128), nullable=True)
     debug_flag = db.Column(db.Boolean, default=True)
+
+    # context creation
+    python_version = db.Column(db.String(4), nullable=False, default="3.8")
+    requirements = db.Column(db.Text, nullable=True)
+    files = db.Column(db.Text, nullable=True)
+    executable = db.Column(db.String(256), nullable=True)
+    pre_process = db.Column(db.Text, nullable=True)
+    post_process = db.Column(db.Text, nullable=True)
+
+    install_errors = db.Column(db.Text, nullable=True)
     
     tasks = db.relationship("Task", backref=db.backref("module", lazy=True))
 
@@ -31,13 +42,23 @@ class Module(db.Model):
         return f"Module(id={self.id}, name={self.name})"
 
     def to_json(self):
-        return {"name": self.name,
+        return {"id": self.id,
+                "name": self.name,
                 "description": self.description,
                 "args": json.loads(self.arguments),
                 "hyperparameters": json.loads(self.hyperparameters),
                 "defaults": json.loads(self.default_args),
                 "output": json.loads(self.output),
-                "install": json.loads(self.install),
+                "install": {
+                    "python_version": self.python_version,
+                    "requirements": self.requirements,
+                    "files": json.loads(self.files),
+                    "executable": self.executable,
+                    "pre_process": self.pre_process,
+                    "post_process": self.post_process,
+                    },
+                "status": self.status,
+                "install_errors": self.install_errors,
                 }
     def load_json(self, data):
         self.name = data["name"]
@@ -50,7 +71,20 @@ class Module(db.Model):
         #else:
         #    self.default_hyperargs = "[]"
         self.output = json.dumps(data["output"])
-        self.install = json.dumps(data["install"])
+
+        # module install data
+        self.python_version = data["install"]["python_version"]
+        self.requirements = data["install"]["requirements"]
+        self.files = json.dumps(data["install"]["files"])
+        self.executable = data["install"]["executable"]
+        self.pre_process = json.dumps(data["install"].get("pre_process", []))
+        self.post_process = json.dumps(data["install"].get("post_process", []))
+
+        # internal data
+        if "status" in data:
+            self.status = data["status"]
+        if "install_errors" in data:
+            self.install_errors = data["install_errors"]
 
     def info(self):
         """Get ModuleInfo object

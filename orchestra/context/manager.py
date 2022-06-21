@@ -56,15 +56,16 @@ class ContextManager:
             try:
                 image,logs = self.client.images.build(path=".", tag=tag, nocache=True)
             except Exception as e:
-                print("ERRRRRRRr")
-                print(e)
-                #print(logs)
+                print(f"Error building execution context with tag '{tag}'.")
+                print(e, type(e))
+                os.chdir(parent_dir)
+                return {"error": str(e)}
 
             self.close_client()
 
             # move back to parent directory
             os.chdir(parent_dir)
-            return image
+            return {"image": image}
 
     def run(self, context, command, output_dir):
         """Execute the module in its container

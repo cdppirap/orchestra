@@ -12,11 +12,36 @@
             </td>
     </tr>
   {% endfor %}
-  {% if model.status=='installed' %}
     <tr>
-	    <td><a href="{{ url_for('module.test_view', id=model.id) }}"><b>Run with default arguments</b></a></td>
-	    <td></td>
-    </tr>
+	    <td><b>Actions</b></td>
+	    <td>
+
+  <div class="buttons" style="display: inline-block;">
+  {% if model.status=='installed' %}
+  <form action="{{ url_for('module.test_view', id=model.id) }}" style="display: inline;" method="get">
+	  <input type="submit" value="Run default">
+	  <input type="text" name="id" id="id" value="{{ model.id }}" hidden>
+  </form>
   {% endif %}
+  <form action="{{ url_for('module.dockerfile_view', id=model.id) }}" style="display: inline;">
+	  <input type="submit" value="Docker file">
+	  <input type="text" name="id" id="id" value="{{ model.id }}" hidden>
+  </form>
+  <form action="{{ url_for('module.requirements_view', id=model.id) }}" style="display: inline;">
+	  <input type="submit" value="Requirements">
+	  <input type="text" name="id" id="id" value="{{ model.id }}" hidden>
+  </form>
+  <form action="{{ url_for('module.metadata_view', id=model.id) }}" style="display: inline;">
+	  <input type="submit" value="Metadata">
+	  <input type="text" name="id" id="id" value="{{ model.id }}" hidden>
+  </form>
+  </div>
+	    </td>
+    </tr>
+
+
+
   </table>
+
+
 {% endblock %}
