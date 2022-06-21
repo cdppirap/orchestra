@@ -131,7 +131,7 @@ class ModuleView(ModelView):
             target_filename = os.path.join(current_app.instance_path, "archive", filename)
             #f.save(target_filename)
             # create the ModuleInstallationInfo object
-            module_install = ModuleInstallationInfo(module_id=new_mod.id,
+            module_install = ModuleInstallationInfo(module_id=new_mod.ident,
                     filename=target_filename)
             # launch registration task
             print(module_install.to_json(), type(module_install.to_json()))

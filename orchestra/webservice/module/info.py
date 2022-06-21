@@ -26,7 +26,7 @@ class ModuleInstallationInfo:
 class ModuleInfo:
     def __init__(self, filename=None, metadata=None):
         # initialize metadata
-        self.id = id
+        self.id = None
         self.metadata={}
         self.path = None
         if metadata is not None:
