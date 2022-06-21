@@ -14,7 +14,7 @@ from .task.info import TaskInfo
 
 class Module(db.Model):
     __tablename__="module"
-    ident = db.Column(db.Integer, primary_key=True)
+    id= db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True, nullable=True)
     description = db.Column(db.Text, nullable=True)
     arguments = db.Column(db.Text, nullable=True)
@@ -42,7 +42,7 @@ class Module(db.Model):
         return f"Module(id={self.id}, name={self.name})"
 
     def to_json(self):
-        return {"id": self.ident,
+        return {"id": self.id,
                 "name": self.name,
                 "description": self.description,
                 "args": json.loads(self.arguments),
@@ -94,18 +94,18 @@ class Module(db.Model):
 
 class Task(db.Model):
     __tablename__="task"
-    ident = db.Column(db.Integer, primary_key=True)
+    id= db.Column(db.Integer, primary_key=True)
     start = db.Column(db.Float)
     stop = db.Column(db.Float)
     status = db.Column(db.String(48))
-    module_id = db.Column(db.Integer, db.ForeignKey("module.ident"))
+    module_id = db.Column(db.Integer, db.ForeignKey("module.id"))
     arguments = db.Column(db.Text)
     output_dir = db.Column(db.String(1024))
     command = db.Column(db.String(1024))
     celery_id = db.Column(db.String(256))
 
     def to_json(self):
-        return {"id": self.ident,
+        return {"id": self.id,
                 "start": self.start,
                 "stop": self.stop,
                 "status": self.status,
@@ -118,7 +118,7 @@ class Task(db.Model):
     def load_json(self, data):
         print(data)
         if "id" in data:
-            self.ident = data["id"]
+            self.id= data["id"]
         self.start = data["start"]
         if "stop" in data:
             self.stop = data["stop"]
