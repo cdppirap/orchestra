@@ -32,15 +32,10 @@
 
   <div class="buttons" style="display: inline-block;">
   {% if model.status=='running' %}
-  <form action="{{ url_for('task.kill_view', id=model.id) }}" style="display: inline;" method="get">
-	  <input type="submit" value="Kill task">
-	  <input type="text" name="id" id="id" value="{{ model.id }}" hidden>
-  </form>
+  <a class="btn btn-primary" href="{{ url_for('task.kill_view', id=model.id) }}">Kill task</a>
+
   {% elif model.status=='done' %}
-  <form action="{{ url_for('taskoutput', task_id=model.id) }}" style="display: inline;" method="get">
-	  <input type="submit" value="Output">
-	  <input type="text" name="task_id" id="task_id" value="{{ model.id }}" hidden>
-  </form>
+  <a class="btn btn-primary" href="{{ url_for('taskoutput', task_id=model.id) }}">Output</a>
 
   {% endif %}
   </div>
