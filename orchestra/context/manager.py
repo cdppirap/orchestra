@@ -43,29 +43,30 @@ class ContextManager:
                 f.write(dockerfile.read())
                 dockerfile.close()
 
-            # debug print dockerfile
-            #os.system("cat dockerfile")
-
             # move files to build context
             for f in context.files:
                 os.system("cp -r {} .".format(f))
             
             # build the image
             self.open_client()
-            image = None
+
+            result = {}
             try:
-                image,logs = self.client.images.build(path=".", tag=tag, nocache=True)
-            except Exception as e:
+                image,logs = self.client.images.build(path=".", tag=tag, nocache=True, quiet=False)
+                result["image"] = image
+                result["logs"] = logs
+                print("Build log : ")
+                print(logs)
+            except docker.error.BuildError as e:
                 print(f"Error building execution context with tag '{tag}'.")
                 print(e, type(e))
-                os.chdir(parent_dir)
-                return {"error": str(e)}
+                result["error"] = str(e)
 
             self.close_client()
 
             # move back to parent directory
             os.chdir(parent_dir)
-            return {"image": image}
+            return result
 
     def run(self, context, command, output_dir):
         """Execute the module in its container
