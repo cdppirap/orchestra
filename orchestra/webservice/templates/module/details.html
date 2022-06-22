@@ -3,6 +3,17 @@
 {% block details_table %}
   <table class="table table-hover table-bordered searchable">
   {% for c, name in details_columns %}
+    {% if c=="install_errors" %}
+    <tr>
+	    <td>
+		    <b>{{ name }}</b>
+	    </td>
+            <td> 
+		    <pre>{{ get_value(model, c) }}</pre>
+            </td>
+    </tr>
+
+    {% else %}
     <tr>
 	    <td>
 		    <b>{{ name }}</b>
@@ -11,6 +22,7 @@
 		    {{ get_value(model, c) }}
             </td>
     </tr>
+    {% endif %}
   {% endfor %}
     <tr>
 	    <td><b>Actions</b></td>

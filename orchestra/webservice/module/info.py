@@ -111,15 +111,13 @@ class ModuleInfo:
         return ModuleInfo(metadata=json_data)
     def get_requirements(self):
         if self.path is None:
-            return []
-        if not "requirements" in self.metadata["install"]:
-            return []
-        with open(os.path.join(self.path, self.metadata["install"]["requirements"]),"r") as f:
-            req=[r for r in f.read().split("\n") if len(r)]
+            return self.metadata["install"].get("requirements", [])
+        req = self.metadata["install"].get("requirements", [])
+        if "requirements_file" in self.metadata["install"]:
+            with open(os.path.join(self.path, self.metadata["install"]["requirements_file"]),"r") as f:
+                req += [r for r in f.read().split("\n") if len(r)]
         return req
     def get_files(self):
-        print(self.metadata)
-        print(self.path, self.metadata["install"]["files"])
         if self.path is None:
             return self.metadata["install"]["files"]
         return [os.path.abspath(os.path.join(self.path, f)) for f in self.metadata["install"]["files"]]

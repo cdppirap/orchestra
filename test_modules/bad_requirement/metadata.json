@@ -1,6 +1,6 @@
 {
-	"name": "module0", 
-	"description": "Simple model, does nothing", 
+	"name": "bad_requirement", 
+	"description": "This module has a none existing dependency", 
 	"args": ["parameter", "start", "stop"], 
 	"hyperparameters": [], 
 	"defaults": {

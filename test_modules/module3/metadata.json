@@ -13,7 +13,7 @@
 		"filename":"output.csv"
 	}, 
 	"install": {
-		"requirements":"requirements.txt",
+		"requirements_file":"requirements.txt",
 		"files": ["module3.py"], 
 		"executable": "module3"
 	}

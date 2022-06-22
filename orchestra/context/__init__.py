@@ -46,8 +46,11 @@ WORKDIR /home/{}""".format(self.python_version, config.docker_user_uid, config.d
                         os.path.basename(f),
                         os.path.basename(f))
         if len(self.post_process):
+            print("Post process : ", self.post_process, type(self.post_process))
             for p in self.post_process:
                 content += "\n"+p
+        print("DOCKERFILE")
+        print(content)
         if as_string:
             return content
         return BytesIO(bytearray(content.encode()))

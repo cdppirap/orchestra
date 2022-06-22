@@ -12,7 +12,7 @@
 		"filename":"breuillard.cat"
 	}, 
 	"install": {
-		"requirements":"requirements.txt",
+		"requirements_file":"requirements.txt",
 		"files": ["main.py","model_regions_plasmas_mms_2019.txt"], 
 		"executable": "main"
 	}

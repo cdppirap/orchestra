@@ -81,6 +81,7 @@ class ModuleView(ModelView):
         return send_file(dockerfile, as_attachment=True, attachment_filename=f"{module.name}.docker", mimetype="text/txt")
     @expose("/requirements", methods=("GET",))
     def requirements_view(self):
+        print(100*"a")
         module_id = request.args["id"]
         module = Module.query.get(module_id)
         try:

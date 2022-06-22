@@ -29,6 +29,7 @@ class Module(db.Model):
     # context creation
     python_version = db.Column(db.String(4), nullable=False, default="3.8")
     requirements = db.Column(db.Text, nullable=True)
+    requirements_file = db.Column(db.String(256), nullable=True)
     files = db.Column(db.Text, nullable=True)
     executable = db.Column(db.String(256), nullable=True)
     pre_process = db.Column(db.Text, nullable=True)
@@ -51,11 +52,12 @@ class Module(db.Model):
                 "output": json.loads(self.output),
                 "install": {
                     "python_version": self.python_version,
-                    "requirements": self.requirements,
+                    "requirements": json.loads(self.requirements),
+                    "requirements_file": self.requirements_file,
                     "files": json.loads(self.files),
                     "executable": self.executable,
-                    "pre_process": self.pre_process,
-                    "post_process": self.post_process,
+                    "pre_process": json.loads(self.pre_process),
+                    "post_process": json.loads(self.post_process),
                     },
                 "status": self.status,
                 "install_errors": self.install_errors,
@@ -74,7 +76,8 @@ class Module(db.Model):
 
         # module install data
         self.python_version = data["install"].get("python_version","3.8")
-        self.requirements = data["install"]["requirements"]
+        self.requirements = json.dumps(data["install"].get("requirements",[]))
+        self.requirements_file = data["install"].get("requirements_file", None)
         self.files = json.dumps(data["install"]["files"])
         self.executable = data["install"]["executable"]
         self.pre_process = json.dumps(data["install"].get("pre_process", []))

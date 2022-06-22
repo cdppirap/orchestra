@@ -1,6 +1,6 @@
 {
-	"name": "module0", 
-	"description": "Simple model, does nothing", 
+	"name": "module_slow", 
+	"description": "Slow model, waits 100s", 
 	"args": ["parameter", "start", "stop"], 
 	"hyperparameters": [], 
 	"defaults": {

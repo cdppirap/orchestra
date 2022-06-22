@@ -1,4 +1,5 @@
 import docker
+import re
 import os
 from io import BytesIO
 import tempfile
@@ -60,7 +61,14 @@ class ContextManager:
             except docker.errors.BuildError as e:
                 print(f"Error building execution context with tag '{tag}'.")
                 print(e, type(e))
-                result["error"] = str(e)
+                log = list(e.build_log)
+                stream_log = [l for l in log if "stream" in l]
+                ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+                error_log = "".join([ansi_escape.sub("",l.get("stream","")) for l in stream_log])
+
+                result["error"] = error_log
+                # for propre rendering in the html pre tag
+                result["error"] = result["error"].replace("<", "&lt;")
 
             self.close_client()
 

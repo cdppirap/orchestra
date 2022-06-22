@@ -13,7 +13,7 @@
 		"filename":"out.cat"
 	}, 
 	"install": {
-		"requirements":"requirements.txt",
+		"requirements_file":"requirements.txt",
 		"files": ["main.py"], 
 		"executable": "main"
 	}
