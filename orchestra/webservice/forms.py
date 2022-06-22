@@ -39,6 +39,12 @@ class OneOrTheOther(object):
         if sum(has_data)!=1:
             raise validators.ValidationError("Please provide either a Github repository or an archive.")
 
+def find_files(name, path):
+    for root, dirs, files in os.walk(path):
+        if name in files:
+            yield os.path.join(root, name)
+
+
 class ModuleUniqueNameValidator(object):
     def __init__(self):
         self.message = "Module with name \"{}\" already exists."
@@ -64,18 +70,23 @@ class ModuleUniqueNameValidator(object):
                 except zipfile.BadZipFile:
                     raise validators.ValidationError("Unable to read module archive.")
                 # if metadata.json file does not exist raise a validation error
-                metadata_path = os.path.join(temp_dir_zip, "metadata.json")
-                if not os.path.exists(metadata_path):
+                # archive should contain at least one metadata.json file
+                metadata_paths = list(find_files("metadata.json", temp_dir_zip))
+                #metadata_path = os.path.join(temp_dir_zip, "metadata.json")
+                #if not os.path.exists(metadata_path):
+                if len(metadata_paths)==0:
                     raise validators.ValidationError("Module archive should contain a 'metadata.json' file.")
-                # read the metadata
-                metadata = json.load(open(metadata_path,"r"))
-                if not "name" in metadata:
-                    raise validators.ValidationError("Invalid metadata.json file.")
-                # check that there are no installed modules with the same name
-                module_name = metadata["name"]
-                modules = Module.query.where(Module.name==module_name)
-                if modules.count():
-                    raise validators.ValidationError(f"A Module named '{module_name}' already exists.")
+                # check names of modules
+                for metadata_path in metadata_paths:
+                    # read the metadata
+                    metadata = json.load(open(metadata_path,"r"))
+                    if not "name" in metadata:
+                        raise validators.ValidationError("Invalid metadata.json file.")
+                    # check that there are no installed modules with the same name
+                    module_name = metadata["name"]
+                    modules = Module.query.where(Module.name==module_name)
+                    if modules.count():
+                        raise validators.ValidationError(f"A Module named '{module_name}' already exists.")
 
  
 

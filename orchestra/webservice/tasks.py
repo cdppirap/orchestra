@@ -1,7 +1,7 @@
 import os
 import zipfile
 import tempfile
-
+import uuid
 
 from celery import shared_task
 # database
@@ -36,6 +36,12 @@ def run_module(task_data):
     module_manager = ModuleManager()
     module_manager.run_module(task.info())
 
+def find_files(name, path):
+    for root, dirs, files in os.walk(path):
+        if name in files:
+            yield os.path.join(root, name)
+
+
 @shared_task
 def register_module(module_install_data):
     """Module registration task
@@ -50,25 +56,42 @@ def register_module(module_install_data):
             # create a temporary directory in which to unzip
             with tempfile.TemporaryDirectory() as temp_dir:
                 zip_ref.extractall(temp_dir)
-                # register module
-                metadata_path = os.path.join(temp_dir, "metadata.json")
-                module_info = ModuleInfo(metadata_path)
-                module_info.set_id(module_install.module_id)
+                # register modules found in archive (can be more then one)
+                first_module = True
+                for metadata_path in find_files("metadata.json", temp_dir):
+                    #metadata_path = os.path.join(temp_dir, "metadata.json")
+                    module_info = ModuleInfo(metadata_path)
+                    if first_module:
+                        # we can set the id because a Module entry exists
+                        module_info.set_id(module_install.module_id)
+                    else:
+                        # create a new pending entry
+                        temp_name = "TempModule_" + uuid.uuid4().hex[:4].upper()
+                        new_mod = Module(status="pending", name=temp_name)
+                        # save the new Module
+                        db.session.add(new_mod)
+                        db.session.commit()
+                        db.session.refresh(new_mod)
+                        module_install.module_id = new_mod.id
+                        module_info.set_id(module_install.module_id)
 
-                module = Module.query.get(module_install.module_id)
-                module.name = module_info.metadata["name"]
-                db.session.commit()
 
-                                # register the module
-                mdata, context_id = module_manager.register_module(module_info)
-                # update the module object
-                module.load_json(mdata)
-                module.context_id = context_id
-                if context_id is not None:
-                    module.status = "installed"
+
+                    module = Module.query.get(module_install.module_id)
+                    module.name = module_info.metadata["name"]
                     db.session.commit()
-                else:
-                    module.status = "error"
+
+                                    # register the module
+                    mdata, context_id = module_manager.register_module(module_info)
+                    # update the module object
+                    module.load_json(mdata)
+                    module.context_id = context_id
+                    if context_id is not None:
+                        module.status = "installed"
+                        db.session.commit()
+                    else:
+                        module.status = "error"
+                    first_module = False
 
 
                         
