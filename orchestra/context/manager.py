@@ -57,7 +57,7 @@ class ContextManager:
                 result["logs"] = logs
                 print("Build log : ")
                 print(logs)
-            except docker.error.BuildError as e:
+            except docker.errors.BuildError as e:
                 print(f"Error building execution context with tag '{tag}'.")
                 print(e, type(e))
                 result["error"] = str(e)
