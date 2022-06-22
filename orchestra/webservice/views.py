@@ -97,9 +97,12 @@ class ModuleView(ModelView):
         module = Module.query.get(module_id)
         f = io.BytesIO(json.dumps(module.to_json(), indent=4).encode())
         return send_file(f, as_attachment=True, attachment_filename="metadata.json", mimetype="text/txt")
-
-        
-
+    @expose("/reinstall", methods=("GET",))
+    def reinstall_view(self):
+        module_id = request.args["id"]
+        module = Module.query.get(module_id)
+        tasks.reinstall_module.delay(module.id)
+        return redirect(url_for("module.details_view", id=module_id))
 
     def is_accessible(self):
         return login.current_user.is_authenticated

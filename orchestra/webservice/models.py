@@ -36,6 +36,9 @@ class Module(db.Model):
     post_process = db.Column(db.Text, nullable=True)
 
     install_errors = db.Column(db.Text, nullable=True)
+
+    # installation source
+    install_source = db.Column(db.String(256), nullable=True)
     
     tasks = db.relationship("Task", backref=db.backref("module", lazy=True))
 

@@ -2,6 +2,7 @@ import os
 import zipfile
 import tempfile
 import uuid
+import json
 
 from celery import shared_task
 # database
@@ -11,6 +12,8 @@ from .models import Module, Task
 # module manager and info
 from .module.info import ModuleInfo, ModuleInstallationInfo
 from .module.manager import ModuleManager
+# context manager
+from ..context.manager import ContextManager
 # tasks
 from .task.info import TaskInfo
 
@@ -84,11 +87,12 @@ def register_module(module_install_data):
                     module.name = module_info.metadata["name"]
                     db.session.commit()
 
-                                    # register the module
+                    # register the module
                     mdata, context_id = module_manager.register_module(module_info)
                     # update the module object
                     module.load_json(mdata)
                     module.context_id = context_id
+                    module.install_source = module_install.filename
                     if context_id is not None:
                         module.status = "installed"
                         db.session.commit()
@@ -116,6 +120,7 @@ def register_module(module_install_data):
             # update the module object
             module.load_json(mdata)
             module.context_id = context_id
+            module.install_source = module_install.git
             if context_id is not None:
                 module.status = "installed"
             else:
@@ -135,6 +140,56 @@ def register_module(module_install_data):
     db.session.commit()
     # close database session
     db.session.close()
+
+@shared_task
+def reinstall_module(module_id):
+    # database connection
+    db = get_db()
+    # module manager
+    module_manager = ModuleManager()
+    # context manager
+    cmanager = ContextManager()
+    module = Module.query.get(module_id)
+    # remove the previously built image
+    cmanager.remove(module.context_id)
+    module.context_id = None
+    module.status = "pending"
+    db.session.commit()
+    db.session.refresh(module)
+
+    print(f"Reinstalling module : {module}")
+    # install from an archive
+    if os.path.exists(module.install_source):
+        # unzip the archive
+        with zipfile.ZipFile(module.install_source, "r") as zip_ref:
+            # create a temporary directory in which to unzip
+            with tempfile.TemporaryDirectory() as temp_dir:
+                zip_ref.extractall(temp_dir)
+                for metadata_path in find_files("metadata.json", temp_dir):
+                    # check if the name corresponds
+                    with open(metadata_path,"r") as f:
+                        metadata = json.loads(f.read())
+                        if metadata["name"] == module.name:
+                            # reinstall this module, load the metadata from the database (not the json file)
+                            module_info = module.info()
+                            # set the root path correctly, directory containing the metadata file
+                            module_info.path = os.path.dirname(metadata_path)
+
+                            # register the module
+                            mdata, context_id = module_manager.register_module(module_info)
+                            # update the module object
+                            module.context_id = context_id
+                            module.load_json(mdata)
+                            if context_id is not None:
+                                module.status = "installed"
+                                module.install_errors = None
+                            else:
+                                module.status = "error"
+
+                            db.session.commit()
+
+
+
 
 
 

@@ -113,7 +113,7 @@ class ModuleInfo:
         if self.path is None:
             return self.metadata["install"].get("requirements", [])
         req = self.metadata["install"].get("requirements", [])
-        if "requirements_file" in self.metadata["install"]:
+        if self.metadata["install"].get("requirements_file", None) is not None:
             with open(os.path.join(self.path, self.metadata["install"]["requirements_file"]),"r") as f:
                 req += [r for r in f.read().split("\n") if len(r)]
         return req

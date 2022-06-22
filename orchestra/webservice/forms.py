@@ -2,8 +2,10 @@ import os
 import tempfile
 import zipfile
 import json
+import uuid
 
 import werkzeug.datastructures
+from werkzeug.utils import secure_filename
 
 from flask import current_app, flash
 from flask_wtf import FlaskForm
@@ -53,14 +55,35 @@ class ModuleUniqueNameValidator(object):
         #target_filename = os.path.join(temp_dir, field.data.filename)
         if len(field.data.filename)==0:
             return
-        target_filename = os.path.join(current_app.instance_path, "archive", field.data.filename)
-        # save the archive
-        field.data.save(target_filename)
+        target_filename = os.path.join(current_app.instance_path, "archive", secure_filename(field.data.filename))
+
+        # check file type
         extensions = [".zip"]
         extension = os.path.splitext(target_filename)[1]
         if not extension in extensions:
             message = f"Input file must be one of the following type : {extensions}."
             raise validators.ValidationError(message+f" Got ({extension}).")
+
+        # save the archive
+        if not os.path.exists(target_filename):
+            field.data.save(target_filename)
+        else:
+            suffix = f"_{uuid.uuid4().hex[:4].upper()}"
+            splitt = os.path.splitext(target_filename)
+            while os.path.exists(splitt[0] + suffix + splitt[1]):
+                suffix = f"_{uuid.uuid4().hex[:4].upper()}"
+            target_filename = splitt[0] + suffix + splitt[1]
+            # update filename
+            print(f"BEFORE NAME CHANGE : {field.data.filename}")
+            field.data.filename = os.path.basename(target_filename)
+            print(f"AFTER NAME CHANGE : {field.data.filename}")
+
+
+            # save file
+            field.data.save(target_filename)
+
+
+
 
         with zipfile.ZipFile(target_filename, "r") as zip_ref:
             # create a temporary directory in which to unzip
