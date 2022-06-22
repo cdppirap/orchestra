@@ -87,13 +87,9 @@ class ModuleView(ModelView):
         return send_file(dockerfile, as_attachment=True, attachment_filename=f"{module.name}.docker", mimetype="text/txt")
     @expose("/requirements", methods=("GET",))
     def requirements_view(self):
-        print(100*"a")
         module_id = request.args["id"]
         module = Module.query.get(module_id)
-        try:
-            f = io.BytesIO("\n".join([json.loads(module.requirements)]).encode())
-        except:
-            f = io.BytesIO("requirements".encode())
+        f = io.BytesIO("\n".join(json.loads(module.requirements)).encode())
         return send_file(f, as_attachment=True, attachment_filename="requirements.txt", mimetype="text/txt")
     @expose("/metadata", methods=("GET",))
     def metadata_view(self):
