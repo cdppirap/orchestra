@@ -38,7 +38,7 @@ class ModuleView(ModelView):
     details_template = "module/details.html"
     can_set_page_size = True
     column_exclude_list = ("install_errors","arguments","hyperparameters","default_args","install",
-            "context_id", "output",)
+            "context_id", "output", "requirements_file","files",)
 
     def description_formatter(view, context, model, name):
         if model.description is None:
@@ -46,11 +46,17 @@ class ModuleView(ModelView):
         if len(model.description)<30:
             return model.description
         return model.description[:27] + "..."
+    def requirements_formatter(view, context, model, name):
+        if model.requirements is None:
+            return 0
+        return len(json.loads(model.requirements))
     column_formatters = {
             "description": description_formatter,
+            "requirements": requirements_formatter,
             }
     column_formatters_detail = {
             "description": None,
+            "requirements": None,
             }
 
 

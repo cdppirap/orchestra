@@ -61,6 +61,9 @@ def register_module(module_install_data):
                 for metadata_path in find_files("metadata.json", temp_dir):
                     #metadata_path = os.path.join(temp_dir, "metadata.json")
                     module_info = ModuleInfo(metadata_path)
+                    # read the requirements file if exists and populate the module_info.metadata dict
+                    module_info.metadata["install"]["requirements"] = module_info.get_requirements()
+                    module_info.metadata["install"].pop("requirements_file", None)
                     if first_module:
                         # we can set the id because a Module entry exists
                         module_info.set_id(module_install.module_id)
