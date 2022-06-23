@@ -8,7 +8,7 @@ from flask_admin import Admin, AdminIndexView
 from flask_basicauth import BasicAuth
 from werkzeug.exceptions import HTTPException
 
-from ..models import Task
+from ..models import Task, Module
 from ..db import get_db
 
 from ..module.info import ModuleInfo
@@ -165,10 +165,12 @@ class TaskOutput(Resource):
         task = manager.get_task(task_id)
         if task.is_done():
             # get the module
-            module = manager[task.get_module_id()]
+            #module = Module.query.get(task.get_module_id()).info()
+            #module = manager[task.get_module_id()]
             # only return output if task is done
             output_dir = task["output_dir"]
             # get the output filenames
+            print(module.metadata)
             output_filenames = module.get_output_filenames()
             output_files = list(os.listdir(output_dir))
 
