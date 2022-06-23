@@ -184,10 +184,10 @@ class TaskOutput(Resource):
                 # create a temporary directory
                 prev_dir = os.getcwd()
                 with tempfile.TemporaryDirectory() as tempdir:
-                    os.chdir(tempdir)
+                    #os.chdir(tempdir)
                     # zip the files
-                    os.system("zip output.zip {}".format(" ".join(output_files)))
-                    return send_from_directory(output_dir, "output.zip", as_attachment=False)
+                    os.system(f"zip {tempdir}/output.zip {' '.join(output_files)}")
+                    return send_from_directory(output_dir, os.path.join(tempdir,"output.zip"), as_attachment=False)
                 ## zip the output
                 #cmd = "cd {} ; zip output.zip {}".format(output_dir, " ".join(output_files))
                 #os.system(cmd)

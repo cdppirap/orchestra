@@ -47,22 +47,21 @@ class ContextManager:
         parent_dir = os.getcwd()
         with tempfile.TemporaryDirectory() as tmpdir:
             # change the current working directory
-            os.chdir(tmpdir)
+            #os.chdir(tmpdir)
             # make the requirements file
             if len(context.requirements):
-                with open("requirements.txt", "w") as f:
+                with open(os.path.join(tmpdir,"requirements.txt"), "w") as f:
                     f.write("\n".join(context.requirements))
                 context.files.append("requirements.txt")
             # dockerfile creationg
             dockerfile = context.to_dockerfile()
-            with open("dockerfile","wb") as f:
+            with open(os.path.join(tmpdir,"dockerfile"),"wb") as f:
                 f.write(dockerfile.read())
-                dockerfile.close()
 
             # move files to build context
             for f in context.files:
                 if f!="requirements.txt":
-                    os.system("cp -r {} .".format(f))
+                    os.system(f"cp -r {f} {tmpdir}")
 
             
             # build the image
@@ -81,7 +80,7 @@ class ContextManager:
             self.close_client()
 
             # move back to parent directory
-            os.chdir(parent_dir)
+            #os.chdir(parent_dir)
             return result
 
     def run(self, context, command, output_dir):

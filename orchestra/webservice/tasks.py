@@ -106,10 +106,10 @@ def register_module(module_install_data):
     elif module_install.git:
         with tempfile.TemporaryDirectory() as temp_dir:
             current_dir = os.getcwd()
-            os.chdir(temp_dir)
-            os.system(f"git clone -c http.sslVerify=0 {module_install.git}")
-            repository_folder = os.path.basename(module_install.git).replace(".git", "")
-            metadata_path = os.path.join(repository_folder, "metadata.json")
+            #os.chdir(temp_dir)
+            os.system(f"git clone -c http.sslVerify=0 {module_install.git} {temp_dir}")
+            repository_name = os.path.basename(module_install.git).replace(".git", "")
+            metadata_path = os.path.join(temp_dir, "metadata.json")
             module_info = ModuleInfo(metadata_path)
             module_info.set_id(module_install.module_id)
             module = Module.query.get(module_info.id)
@@ -131,7 +131,7 @@ def register_module(module_install_data):
 
 
             # move back to original directory
-            os.chdir(current_dir)
+            #os.chdir(current_dir)
 
     else:
         print("Module registration: nothing to do.")
@@ -190,10 +190,10 @@ def reinstall_module(module_id):
     elif module.install_source.startswith("https://"):
         with tempfile.TemporaryDirectory() as temp_dir:
             current_dir = os.getcwd()
-            os.chdir(temp_dir)
-            os.system(f"git clone -c http.sslVerify=0 {module.install_source}")
-            repository_folder = os.path.basename(module.install_source).replace(".git", "")
-            metadata_path = os.path.join(repository_folder, "metadata.json")
+            #os.chdir(temp_dir)
+            os.system(f"git clone -c http.sslVerify=0 {module.install_source} {temp_dir}")
+            repository_name = os.path.basename(module.install_source).replace(".git", "")
+            metadata_path = os.path.join(temp_dir, "metadata.json")
             module_info = ModuleInfo(metadata_path)
             # requirements should be set from the database Module entry
             module_info.set_requirements(requirements=json.loads(module.requirements), requirements_file=module.requirements_file)
@@ -209,7 +209,7 @@ def reinstall_module(module_id):
                 module.status = "error"
 
             # move back to original directory
-            os.chdir(current_dir)
+            #os.chdir(current_dir)
             db.session.commit()
     else:
         pass
