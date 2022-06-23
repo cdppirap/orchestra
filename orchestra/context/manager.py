@@ -69,7 +69,7 @@ class ContextManager:
 
             result = {}
             try:
-                image,logs = self.client.images.build(path=".", tag=tag, nocache=True, quiet=False)
+                image,logs = self.client.images.build(path=tmpdir, tag=tag, nocache=True, quiet=False)
                 result["image"] = image
                 result["log"] = self.make_build_log(logs)
             except docker.errors.BuildError as e:
