@@ -1,0 +1,18 @@
+version: "3"
+services:
+  orchestra:
+    build:
+      context: build
+      dockerfile: Dockerfile
+      args:
+        ORCHESTRA_UID:
+        ORCHESTRA_GID:
+        DOCKER_GID:
+    privileged: true
+    environment:
+      - ORCHESTRA_UID
+    ports:
+      - "6000:5000"
+    volumes:
+      - /orchestra_data:/orchestra_data
+      - /var/run/docker.sock:/var/run/docker.sock
