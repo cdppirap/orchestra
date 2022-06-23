@@ -20,6 +20,8 @@ class PythonRequirements:
         return "PythonRequirements ({})".format(",".join(self.requirements))
     def pip_str(self):
         return " ".join(self.requirements)
+    def __getitem__(self, i):
+        return self.requirements[i]
 
 class PythonContext:
     def __init__(self, requirements=[], files=[], python_version="3.6", post_process=[]):
@@ -37,20 +39,18 @@ USER {}
 WORKDIR /home/{}""".format(self.python_version, config.docker_user_uid, config.docker_user,
             config.docker_user, config.docker_user)
         # create a user
-        if len(self.requirements):
-            content += "\n"+"RUN pip install {}".format(self.pip_str())
         if len(self.files):
             for f in self.files:
                 content += "\n"+"ADD --chown={}:{} {} {}".format(config.docker_user, 
                         config.docker_user,
                         os.path.basename(f),
                         os.path.basename(f))
+        if len(self.requirements):
+            content += "\nRUN python -m pip install -r requirements.txt"
+
         if len(self.post_process):
-            print("Post process : ", self.post_process, type(self.post_process))
             for p in self.post_process:
                 content += "\n"+p
-        print("DOCKERFILE")
-        print(content)
         if as_string:
             return content
         return BytesIO(bytearray(content.encode()))

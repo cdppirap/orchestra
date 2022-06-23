@@ -37,7 +37,8 @@ def run_module(task_data):
     # create the TaskInfo object
     #task = TaskInfo.from_json(task_data)
     module_manager = ModuleManager()
-    module_manager.run_module(task.info())
+    result = module_manager.run_module(task.info())
+
 
 def find_files(name, path):
     for root, dirs, files in os.walk(path):
@@ -182,11 +183,37 @@ def reinstall_module(module_id):
                             module.load_json(mdata)
                             if context_id is not None:
                                 module.status = "installed"
-                                module.install_errors = None
                             else:
                                 module.status = "error"
 
                             db.session.commit()
+    elif module.install_source.startswith("https://"):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            current_dir = os.getcwd()
+            os.chdir(temp_dir)
+            os.system(f"git clone -c http.sslVerify=0 {module.install_source}")
+            repository_folder = os.path.basename(module.install_source).replace(".git", "")
+            metadata_path = os.path.join(repository_folder, "metadata.json")
+            module_info = ModuleInfo(metadata_path)
+            # requirements should be set from the database Module entry
+            module_info.set_requirements(requirements=json.loads(module.requirements), requirements_file=module.requirements_file)
+
+            # register the module
+            mdata, context_id = module_manager.register_module(module_info)
+            # update the module object
+            module.load_json(mdata)
+            module.context_id = context_id
+            if context_id is not None:
+                module.status = "installed"
+            else:
+                module.status = "error"
+
+            # move back to original directory
+            os.chdir(current_dir)
+            db.session.commit()
+    else:
+        pass
+
 
 
 

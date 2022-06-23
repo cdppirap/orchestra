@@ -111,17 +111,16 @@ class ModuleManager:
             sys.stdout.flush()
         # create the context
         image_tag = "orchestra:{}".format(module.metadata["name"])
-        print(f"Image tag : {image_tag}")
         context = module.get_context()
         context = ContextManager().build(context, tag = image_tag)
+
+        module.metadata["build_log"] = context["log"]
         if "error" in context:
             # set the metadata
             module.metadata["status"] = "error"
-            module.metadata["install_errors"] = context["error"]
             return module.metadata, None
 
         image = context["image"]
-        print("In register module metadata: ", module.metadata)
 
         return module.metadata, image.id
 
@@ -247,7 +246,7 @@ class ModuleManager:
             print("Request run for module id={}, args={}".format(module_id, task["arguments"]))
         # retrieve the module object
         module_id = task["module_id"]
-        module = self[module_id]
+        module = Module.query.get(module_id).info() #self[module_id]
         # the module's execution context
         print(f"Getting context id for module : {module_id}")
         context_id = self.get_context_id(module_id)
@@ -263,21 +262,17 @@ class ModuleManager:
 
         task["start"] = time.time()
         self.save_task(task)
-        try:
-            print(f"Before running module {context_id}")
-            out = ContextManager().run(context_id, command, output_dir)
+        result = ContextManager().run(context_id, command, output_dir)
+        if "error" in result:
+            task["status"] = TaskStatus.ERROR
+        else:
+            task["status"] = TaskStatus.DONE
 
-        except Exception as e:
-            task["status"]=TaskStatus.ERROR
-            task["error"] = str(e).replace("\'", "\"")
-            task["celery_id"] = None
-            self.save_task(task)
-            #print("OUT ", out)
-            raise Exception("Module run error {}".format(e))
+        task["execution_log"] = result["log"]
+        print("Log type ", type(result["log"]))
 
         # terminate the task at this point
         task["stop"]=time.time()
-        task["status"]= TaskStatus.DONE
         task["celery_id"] = None
         self.save_task(task)
         return 

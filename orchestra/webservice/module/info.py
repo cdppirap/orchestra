@@ -117,6 +117,11 @@ class ModuleInfo:
             with open(os.path.join(self.path, self.metadata["install"]["requirements_file"]),"r") as f:
                 req += [r for r in f.read().split("\n") if len(r)]
         return req
+    def set_requirements(self, requirements=None, requirements_file=None):
+        if isinstance(requirements,list):
+            self.metadata["install"]["requirements"] = requirements
+        if requirements_file:
+            self.metadata["install"]["requirements_file"] = requirements_file
     def get_files(self):
         if self.path is None:
             return self.metadata["install"]["files"]

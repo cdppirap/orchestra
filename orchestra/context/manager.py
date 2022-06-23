@@ -30,6 +30,16 @@ class ContextManager:
         self.client.images.prune()
 
         self.close_client()
+
+    def make_build_log(self, log):
+        logs = list(log)
+        logs = ["".join([log[k] for k in log if isinstance(log[k],str)]) for log in logs]
+        ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+        r = "".join(logs)
+        r = ansi_escape.sub("", r)
+        r = r.replace("<", "&lt;")
+
+        return r
     def build(self, context, tag="orchestra:latest"):
         """Build an image for a given context
         """
@@ -38,6 +48,11 @@ class ContextManager:
         with tempfile.TemporaryDirectory() as tmpdir:
             # change the current working directory
             os.chdir(tmpdir)
+            # make the requirements file
+            if len(context.requirements):
+                with open("requirements.txt", "w") as f:
+                    f.write("\n".join(context.requirements))
+                context.files.append("requirements.txt")
             # dockerfile creationg
             dockerfile = context.to_dockerfile()
             with open("dockerfile","wb") as f:
@@ -46,7 +61,9 @@ class ContextManager:
 
             # move files to build context
             for f in context.files:
-                os.system("cp -r {} .".format(f))
+                if f!="requirements.txt":
+                    os.system("cp -r {} .".format(f))
+
             
             # build the image
             self.open_client()
@@ -55,20 +72,11 @@ class ContextManager:
             try:
                 image,logs = self.client.images.build(path=".", tag=tag, nocache=True, quiet=False)
                 result["image"] = image
-                result["logs"] = logs
-                print("Build log : ")
-                print(logs)
+                result["log"] = self.make_build_log(logs)
             except docker.errors.BuildError as e:
-                print(f"Error building execution context with tag '{tag}'.")
-                print(e, type(e))
-                log = list(e.build_log)
-                stream_log = [l for l in log if "stream" in l]
-                ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-                error_log = "".join([ansi_escape.sub("",l.get("stream","")) for l in stream_log])
-
-                result["error"] = error_log
+                result["error"] = True
                 # for propre rendering in the html pre tag
-                result["error"] = result["error"].replace("<", "&lt;")
+                result["log"] = self.make_build_log(e.build_log)
 
             self.close_client()
 
@@ -83,7 +91,7 @@ class ContextManager:
         self.open_client()
         # create the mount
         m = docker.types.Mount(target="/output", source=os.path.abspath(output_dir), type="bind")
-        logs = None
+        result = {}
         try:
             logs = self.client.containers.run(context , command,  mounts=[m], 
                 auto_remove=False, 
@@ -91,12 +99,16 @@ class ContextManager:
                 detach=False)
                 #cpu_period=100000,
                 #cpu_quota=100000)
-            #print("RES", logs.wait())
-            #logs.remove()
-        except Exception as e:
-            print("3EEEEEEEEEEEEEEEEEEEEEEE", e)
+            stdout = logs.decode("utf-8")
+            if len(stdout):
+                result["log"] = stdout
+            else:
+                result["log"] = None
+        except docker.errors.ContainerError as e:
+            result["error"] = True
+            result["log"] = e.stderr.decode("utf-8")
         self.close_client()
-        return logs
+        return result
     def remove(self, context):
         """Delete a context
         """

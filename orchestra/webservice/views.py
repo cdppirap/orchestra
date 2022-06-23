@@ -29,6 +29,8 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin.model.template import EndpointLinkRowAction
 from flask_admin import BaseView, expose
 
+from wtforms import SelectField
+
 class ModuleView(ModelView):
     can_view_details = True
     column_display_pk = True
@@ -37,8 +39,17 @@ class ModuleView(ModelView):
     edit_modal = True
     details_template = "module/details.html"
     can_set_page_size = True
-    column_exclude_list = ("install_errors","arguments","hyperparameters","default_args","install",
+    column_exclude_list = ("build_log","arguments","hyperparameters","default_args","install",
             "context_id", "output", "requirements_file","files",)
+
+    form_overrides = {
+            "status": SelectField,
+            }
+    form_args = {
+            "status": {"choices":["installed", "error", "pending"]},
+            }
+
+    form_excluded_columns = ("build_log",)
 
     def description_formatter(view, context, model, name):
         if model.description is None:
@@ -63,6 +74,8 @@ class ModuleView(ModelView):
     # added test action
     column_extra_row_actions = [
             EndpointLinkRowAction("glyphicon glyphicon-play", ".test_view", "Run module with defaults"),
+            EndpointLinkRowAction("glyphicon glyphicon-refresh", ".reinstall_view", "Reinstall"),
+
             ]
     @expose("/test", methods=("GET",))
     def test_view(self):
@@ -99,8 +112,14 @@ class ModuleView(ModelView):
         return send_file(f, as_attachment=True, attachment_filename="metadata.json", mimetype="text/txt")
     @expose("/reinstall", methods=("GET",))
     def reinstall_view(self):
+        db = get_db()
         module_id = request.args["id"]
         module = Module.query.get(module_id)
+        module.build_log = ""
+        module.status = "pending"
+
+        db.session.commit()
+        
         tasks.reinstall_module.delay(module.id)
         return redirect(url_for("module.details_view", id=module_id))
 
@@ -177,6 +196,8 @@ class TaskView(ModelView):
     can_edit = False
     details_modal = False
     details_template = "task/details.html"
+    column_exclude_list = ("celery_id", "execution_log","output_dir","command")
+    form_excluded_columns = ("celery_id", "execution_log", "output_dir",)
     # added output download action
     column_extra_row_actions = [
             EndpointLinkRowAction("glyphicon glyphicon-trash", ".delete_view", "Delete task"),
@@ -226,9 +247,18 @@ class TaskView(ModelView):
 
     @expose("/output", methods=("GET",))
     def output_view(self):
-        print(current_app.url_map)
         task_id = request.args["id"]
         task = Task.query.get(task_id)
+        if task.status=="terminated":
+            flash("Cannot download output for terminated Task {task.id}.", "error")
+            return redirect(url_for(".index_view"))
+        if task.status=="error":
+            flash("Cannot download output for Task {task.id} that terminated with errors.", "error")
+            return redirect(url_for(".index_view"))
+        if task.status=="running":
+            flash("Cannot download output for Task {task.id} that is running.", "error")
+            return redirect(url_for(".index_view"))
+
         run_url = url_for("taskoutput", task_id=task_id, _external=True)
         return redirect(run_url)
 

@@ -35,7 +35,7 @@ class Module(db.Model):
     pre_process = db.Column(db.Text, nullable=True)
     post_process = db.Column(db.Text, nullable=True)
 
-    install_errors = db.Column(db.Text, nullable=True)
+    build_log = db.Column(db.Text, nullable=True)
 
     # installation source
     install_source = db.Column(db.String(256), nullable=True)
@@ -63,7 +63,7 @@ class Module(db.Model):
                     "post_process": json.loads(self.post_process),
                     },
                 "status": self.status,
-                "install_errors": self.install_errors,
+                "build_log": self.build_log,
                 }
     def load_json(self, data):
         self.name = data["name"]
@@ -89,8 +89,8 @@ class Module(db.Model):
         # internal data
         if "status" in data:
             self.status = data["status"]
-        if "install_errors" in data:
-            self.install_errors = data["install_errors"]
+        if "build_log" in data:
+            self.build_log= data["build_log"]
 
     def info(self):
         """Get ModuleInfo object
@@ -109,6 +109,9 @@ class Task(db.Model):
     output_dir = db.Column(db.String(1024))
     command = db.Column(db.String(1024))
     celery_id = db.Column(db.String(256))
+
+    # execution log
+    execution_log = db.Column(db.Text)
 
     def to_json(self):
         return {"id": self.id,
@@ -145,6 +148,8 @@ class Task(db.Model):
             self.command = data["cmd"]
         else:
             self.command = None
+
+        self.execution_log = data.get("execution_log", None)
 
 
 
