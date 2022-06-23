@@ -26,7 +26,11 @@ class ListModules(Resource):
     module that is currently registered
     """
     def get(self):
-        return [{"id":k, "name":m.metadata["name"]} for k,m in manager.iter_modules()]
+        parser = reqparse.RequestParser()
+        parser.add_argument("debug", type=bool, default=False, location="args")
+        args = parser.parse_args()
+
+        return [{"id":k, "name":m.metadata["name"]} for k,m in manager.iter_modules(debug=args.debug)]
  
 class ShowModule(Resource):
     """Get module information

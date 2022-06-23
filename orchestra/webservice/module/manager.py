@@ -61,10 +61,14 @@ class ModuleManager:
         # remove all task outputs 
         os.system("rm -rf {}".format(os.path.join(config.task_directory,"*")))
 
-    def iter_modules(self, status="installed"):
+    def iter_modules(self, status="installed", debug=False):
         """Module iterator, yields tuples (module_id, module_obj)
         """
-        modules = Module.query.where(Module.status == status)
+        if debug:
+            modules = Module.query.where(Module.status == status)
+        else:
+            modules = Module.query.where(Module.status == status).where(Module.debug_flag==False)
+
         for module in modules:
             yield module.id, module.info()
         
