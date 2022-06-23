@@ -166,7 +166,7 @@ class TaskOutput(Resource):
         if task.is_done():
             # get the module
             #module = Module.query.get(task.get_module_id()).info()
-            #module = manager[task.get_module_id()]
+            module = manager[task.get_module_id()]
             # only return output if task is done
             output_dir = task["output_dir"]
             # get the output filenames
