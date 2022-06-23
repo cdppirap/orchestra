@@ -40,7 +40,7 @@ class ModuleView(ModelView):
     details_template = "module/details.html"
     can_set_page_size = True
     column_exclude_list = ("build_log","arguments","hyperparameters","default_args","install",
-            "context_id", "output", "requirements_file","files",)
+            "context_id", "output", "requirements_file","files","install_source", "post_process", "pre_process")
 
     form_overrides = {
             "status": SelectField,

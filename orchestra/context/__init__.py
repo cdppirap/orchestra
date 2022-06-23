@@ -34,19 +34,33 @@ class PythonContext:
     def to_dockerfile(self, as_string=False):
         # all files must be moved to a temporary directory within the build context
         content = """FROM python:{}-slim-buster
-RUN useradd --create-home --no-log-init --shell /bin/bash --uid {} {}
-USER {}
-WORKDIR /home/{}""".format(self.python_version, config.docker_user_uid, config.docker_user,
-            config.docker_user, config.docker_user)
-        # create a user
+RUN useradd --create-home --no-log-init --shell /bin/bash --uid {} {}""".format(self.python_version,
+                                               config.docker_user_uid,
+                                               config.docker_user)
+        # upgrade pip to latest version
+        content += "\nRUN pip install --upgrade pip"
+        # install requirements if any
+        if len(self.requirements):
+            content += "\nADD requirements.txt requirements.txt"
+            content += "\nRUN pip install -r requirements.txt"
+
+        # login as orchestra user
+        content += f"\nUSER {config.docker_user}"
+        content += f"\nWORKDIR /home/{config.docker_user}"
+
+        # move files
         if len(self.files):
             for f in self.files:
                 content += "\n"+"ADD --chown={}:{} {} {}".format(config.docker_user, 
                         config.docker_user,
                         os.path.basename(f),
                         os.path.basename(f))
-        if len(self.requirements):
-            content += "\nRUN python -m pip install -r requirements.txt"
+        #if len(self.requirements):
+        #    content += "\nRUN pip install --upgrade pip"
+        #    content += "\nRUN pip install --user -r requirements.txt"
+        #    #content += "\nRUN python -m pip install --upgrade pip"
+        #    #content += "\nRUN /usr/local/bin/python -m pip install --upgrade pip"
+        #    #content += "\nRUN python -m pip install -r requirements.txt"
 
         if len(self.post_process):
             for p in self.post_process:
