@@ -17,6 +17,9 @@ from .module.info import ModuleInstallationInfo
 from .module.manager import ModuleManager
 from orchestra.context.manager import ContextManager
 
+# validators
+from .validators import StringListValidator, ModuleArgumentDefaultsValidator, PythonVersionValidator
+
 # database
 from .db import get_db
 
@@ -46,6 +49,31 @@ class ModuleView(ModelView):
             "status": SelectField,
             }
     form_args = {
+            "arguments": {
+                "validators": [StringListValidator()],
+                },
+            "hyperparameters": {
+                "validators": [StringListValidator()],
+                },
+            "default_args": {
+                "validators": [ModuleArgumentDefaultsValidator()],
+                },
+            "python_version":{
+                "validators": [PythonVersionValidator()],
+                },
+            "requirements":{
+                "validators": [StringListValidator()],
+                },
+            "files": {
+                "validators": [StringListValidator()],
+                },
+            "pre_process": {
+                "validators": [StringListValidator()],
+                },
+            "post_process": {
+                "validators": [StringListValidator()],
+                },
+
             "status": {"choices":["installed", "error", "pending"]},
             }
 
