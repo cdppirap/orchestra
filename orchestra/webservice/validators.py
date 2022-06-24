@@ -90,6 +90,13 @@ class ModuleUniqueNameValidator(object):
                     if modules.count():
                         raise validators.ValidationError(f"A Module named '{module_name}' already exists.")
 
+class JSONValidator(object):
+    def __call__(self, form, field):
+        try:
+            data = json.loads(field.data)
+        except:
+            raise validators.ValidationError("Must be valid JSON data.")
+
 class StringListValidator(object):
     def __call__(self, form, field):
         # check that the arguments value can be converted to JSON
@@ -105,6 +112,22 @@ class StringListValidator(object):
             are_strings = [isinstance(o,str) and (len(o)>0) for o in data]
             if not all(are_strings):
                 raise validators.ValidationError("Arguments value must be a list of non-empty strings.")
+
+class ModuleOutputValidator(object):
+    def __call__(self, form, field):
+        data = json.loads(field.data)
+        # type
+        if not "type" in data:
+            raise validators.ValidationError("Output field must have a 'type' field.")
+        types = ["timeseries", "catalog", "timetable"]
+        if not data["type"] in types:
+            raise validators.ValidationError(f"Output type must be one of the following : {types}.")
+        # filename
+        if not "filename" in data:
+            raise validators.ValidationError("Output must have a 'filename' field.")
+        if not isinstance(data["filename"], str):
+            raise validators.ValidationError("Filename must be a string.")
+
 
 class ModuleArgumentDefaultsValidator(object):
     def __call__(self, form, field):

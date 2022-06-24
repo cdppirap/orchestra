@@ -18,7 +18,7 @@ from .module.manager import ModuleManager
 from orchestra.context.manager import ContextManager
 
 # validators
-from .validators import StringListValidator, ModuleArgumentDefaultsValidator, PythonVersionValidator
+from .validators import StringListValidator, ModuleArgumentDefaultsValidator, PythonVersionValidator, ModuleOutputValidator, JSONValidator
 
 # database
 from .db import get_db
@@ -50,28 +50,38 @@ class ModuleView(ModelView):
             }
     form_args = {
             "arguments": {
-                "validators": [StringListValidator()],
+                "validators": [JSONValidator(),
+                    StringListValidator()],
                 },
             "hyperparameters": {
-                "validators": [StringListValidator()],
+                "validators": [JSONValidator(),
+                    StringListValidator()],
                 },
             "default_args": {
-                "validators": [ModuleArgumentDefaultsValidator()],
+                "validators": [JSONValidator(),
+                    ModuleArgumentDefaultsValidator()],
                 },
             "python_version":{
                 "validators": [PythonVersionValidator()],
                 },
             "requirements":{
-                "validators": [StringListValidator()],
+                "validators": [JSONValidator(),
+                    StringListValidator()],
                 },
             "files": {
-                "validators": [StringListValidator()],
+                "validators": [JSONValidator(),
+                    StringListValidator()],
                 },
             "pre_process": {
-                "validators": [StringListValidator()],
+                "validators": [JSONValidator(),
+                    StringListValidator()],
                 },
             "post_process": {
-                "validators": [StringListValidator()],
+                "validators": [JSONValidator(),
+                    StringListValidator()],
+                },
+            "output": {
+                "validators": [JSONValidator(), ModuleOutputValidator()],
                 },
 
             "status": {"choices":["installed", "error", "pending"]},
