@@ -122,6 +122,8 @@ class ModuleInfo:
             self.metadata["install"]["requirements"] = requirements
         if requirements_file:
             self.metadata["install"]["requirements_file"] = requirements_file
+    def set_python_version(self, v):
+        self.metadata["install"]["python_version"] = v
     def get_files(self):
         if self.path is None:
             return self.metadata["install"]["files"]
