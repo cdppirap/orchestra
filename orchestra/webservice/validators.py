@@ -2,6 +2,9 @@ import json
 from wtforms import validators
 from .models import Module
 
+import werkzeug
+import werkzeug.datastructures
+
 class ModuleArchiveValidator(object):
     def __init__(self, extentions=[".zip"], message=None):
         self.extensions = extentions
