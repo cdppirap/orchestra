@@ -136,6 +136,7 @@ class ModuleInfo:
         print(self.metadata)
         return self.metadata["output"]["filename"]
     def get_python_version(self):
+        return self.metadata["install"].get("python_version", "3.6")
         if "python_version" not in self.metadata["install"]:
             return "3.6"
         return self.metadata["install"]["python_version"]
