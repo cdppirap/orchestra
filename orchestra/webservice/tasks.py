@@ -196,8 +196,10 @@ def reinstall_module(module_id):
             metadata_path = os.path.join(temp_dir, "metadata.json")
             module_info = ModuleInfo(metadata_path)
             # requirements should be set from the database Module entry
-            module_info.set_python_version(module.python_version)
-            module_info.set_requirements(requirements=json.loads(module.requirements), requirements_file=module.requirements_file)
+            #module_info.set_python_version(module.python_version)
+            #module_info.set_requirements(requirements=json.loads(module.requirements), requirements_file=module.requirements_file)
+            module_info = module.info()
+            module_info.path=os.path.dirname(metadata_path)
 
             # register the module
             mdata, context_id = module_manager.register_module(module_info)
