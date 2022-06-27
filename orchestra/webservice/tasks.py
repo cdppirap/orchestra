@@ -155,6 +155,11 @@ def reinstall_module(module_id):
     cmanager.remove(module.context_id)
     module.context_id = None
     module.status = "pending"
+    # remove the duplicated requirements before save
+    temp_req = json.loads(module.requirements)
+    temp_req = list(dict.fromkeys(temp_req))
+    module.requirements = json.dumps(temp_req)
+
     db.session.commit()
     db.session.refresh(module)
 

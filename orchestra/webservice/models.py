@@ -81,7 +81,7 @@ class Module(db.Model):
         self.python_version = data["install"].get("python_version","3.8")
         temp_requirements = data["install"].get("requirements",[])
         temp_requirements = list(dict.fromkeys(temp_requirements))
-        self.requirements = temp_requirements
+        self.requirements = json.dumps(temp_requirements)
 
         self.requirements_file = data["install"].get("requirements_file", None)
         self.files = json.dumps(data["install"]["files"])
