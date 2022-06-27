@@ -116,7 +116,7 @@ class ModuleInfo:
         if self.metadata["install"].get("requirements_file", None) is not None:
             with open(os.path.join(self.path, self.metadata["install"]["requirements_file"]),"r") as f:
                 req += [r for r in f.read().split("\n") if len(r)]
-        return req
+        return list(dict.fromkeys(req))
     def set_requirements(self, requirements=None, requirements_file=None):
         if isinstance(requirements,list):
             self.metadata["install"]["requirements"] = requirements
