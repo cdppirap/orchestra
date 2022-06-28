@@ -1,5 +1,8 @@
 import json
 import os
+
+import flask import current_app
+
 from wtforms import validators
 from .models import Module
 
