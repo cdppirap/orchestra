@@ -222,9 +222,9 @@ def reinstall_module(module_id):
     else:
         if not os.path.exists(module.install_source):
             module.status = "error"
-            module.install_log="Unable to reinstall module {module.id}. File {module.install_source} not found."
+            module.install_log=f"Unable to reinstall module {module.id}. File {module.install_source} not found."
             db.session.commit()
-            raise Exception("Unable to reinstall module {module.id}. File {module.install_source} not found.")
+            raise Exception(f"Unable to reinstall module {module.id}. File {module.install_source} not found.")
 
 
 
