@@ -1,12 +1,13 @@
 version: "3"
 services:
-  orchestra_redis:
+  redis:
     image: redislabs/redismod
     restart: unless-stopped
   
-  orchestra_db:
+  postgresql:
     image: postgres
     restart: unless-stopped
+    hostname: orchestra_db
     environment:
       POSTGRES_USER: orchestra
       POSTGRES_PASSWORD: orchestra
