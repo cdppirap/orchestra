@@ -13,6 +13,9 @@ import werkzeug
 import werkzeug.datastructures
 from werkzeug.utils import secure_filename
 
+# configuration
+from orchestra import configuration as config
+
 class ModuleArchiveValidator(object):
     def __init__(self, extentions=[".zip"], message=None):
         self.extensions = extentions
@@ -51,7 +54,8 @@ class ModuleUniqueNameValidator(object):
         # target filename 
         if len(field.data.filename)==0:
             return
-        target_filename = os.path.join(current_app.instance_path, "archive", secure_filename(field.data.filename))
+        #target_filename = os.path.join(current_app.instance_path, "archive", secure_filename(field.data.filename))
+        target_filename = os.path.join(config.archive_directory, secure_filename(field.data.filename))
 
         # check file type
         extensions = [".zip"]
