@@ -3,6 +3,7 @@ FROM python:3.8
 RUN apt-get update > /dev/null 2>&1
 RUN apt-get install vim -y > /dev/null 2>&1 
 
+ARG ORCHESTRA_BRANCH
 ARG ORCHESTRA_USER
 ARG ORCHESTRA_GID
 ARG ORCHESTRA_UID
@@ -24,7 +25,7 @@ RUN pip install --upgrade pip > /dev/null 2>&1
 USER $ORCHESTRA_USER
 
 WORKDIR /home/$ORCHESTRA_USER
-RUN git clone -b admin_website https://github.com/cdppirap/orchestra.git > /dev/null 2>&1
+RUN git clone -b $ORCHESTRA_BRANCH https://github.com/cdppirap/orchestra.git > /dev/null 2>&1
 
 WORKDIR /home/$ORCHESTRA_USER/orchestra
 

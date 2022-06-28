@@ -10,7 +10,8 @@ services:
     build:
       context: build_dashboard
       dockerfile: Dockerfile
-      #args:
+      args:
+        ORCHESTRA_BRANCH:
       #  ORCHESTRA_USER:
       #  ORCHESTRA_UID:
       #  ORCHESTRA_GID:
@@ -21,6 +22,7 @@ services:
     command: celery -A orchestra.webservice.app.celery flower --broker=redis://redis:6379/0
  
     environment:
+      - ORCHESTRA_BRANCH=$ORCHESTRA_BRANCH
       - ORCHESTRA_USER=orchestra
       - ORCHESTRA_UID=$ORCHESTRA_UID
       - ORCHESTRA_GID=$ORCHESTRA_GID
@@ -60,6 +62,7 @@ services:
       context: build_orchestra
       dockerfile: Dockerfile
       args:
+        ORCHESTRA_BRANCH:
         ORCHESTRA_USER:
         ORCHESTRA_UID:
         ORCHESTRA_GID:
@@ -69,6 +72,7 @@ services:
     #env_file:
     #  - ../orchestra_env.sh
     environment:
+      - ORCHESTRA_BRANCH=$ORCHESTRA_BRANCH
       - ORCHESTRA_USER=orchestra
       - ORCHESTRA_UID=$ORCHESTRA_UID
       - ORCHESTRA_GID=$ORCHESTRA_GID
