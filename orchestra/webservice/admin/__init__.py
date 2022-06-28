@@ -26,7 +26,7 @@ def init_admin(app):
     # redis
     #admin.add_view(rediscli.RedisCli(Redis()))
 
-    admin.add_link(FlowerMenuLink(name="Monitor", category="", url="http://dashboard:5555"))
+    admin.add_link(FlowerMenuLink(name="Monitor", category="", url="http://localhost:5555"))
     admin.add_link(LogoutMenuLink(name="Logout", category="", url="/admin/logout"))
 
 
