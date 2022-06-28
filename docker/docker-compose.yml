@@ -7,11 +7,13 @@ services:
   postgresql:
     image: postgres
     restart: unless-stopped
-    hostname: orchestra_db
+    #hostname: orchestra_db
+    env_file:
+      - ../orchestra_env.sh
     environment:
-      POSTGRES_USER: orchestra
-      POSTGRES_PASSWORD: orchestra
-      POSTGRES_DB: orchestra
+      - POSTGRES_USER=orchestra
+      - POSTGRES_PASSWORD=orchestra
+      - POSTGRES_DB=orchestra
     volumes:
       - /var/lib/orchestra/data:/var/lib/postgresql/data
 
@@ -25,9 +27,18 @@ services:
         ORCHESTRA_UID:
         ORCHESTRA_GID:
         DOCKER_GID:
+        FLASK_PORT:
     privileged: true
+    env_file:
+      - ../orchestra_env.sh
     environment:
-      - ORCHESTRA_UID
+      - ORCHESTRA_USER=orchestra
+      - POSTGRES_USER=orchestra
+      - POSTGRES_PASSWORD=orchestra
+      - POSTGRES_DB=orchestra
+      - POSTGRES_HOSTNAME=postgresql
+      - REDIS_HOSTNAME=redis
+
     ports:
       - "5000:5000"
     volumes:

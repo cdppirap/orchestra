@@ -7,6 +7,7 @@ ARG ORCHESTRA_USER
 ARG ORCHESTRA_GID
 ARG ORCHESTRA_UID
 ARG DOCKER_GID
+ARG FLASK_PORT
 
 RUN groupadd -g $ORCHESTRA_GID $ORCHESTRA_USER
 RUN groupadd -g $DOCKER_GID docker 
@@ -14,15 +15,10 @@ RUN useradd --gid $ORCHESTRA_GID -ms /bin/bash --uid $ORCHESTRA_UID $ORCHESTRA_U
 RUN usermod -aG docker $ORCHESTRA_USER
 RUN echo '$ORCHESTRA_USER ALL=(ALL)       NOPASSWD: ALL' >> /etc/sudoers
 
-RUN echo "orchestra_user: $ORCHESTRA_USER - orchestra_gid: $ORCHESTRA_GID - orchestra_uid: $ORCHESTRA_UID - docker_gid: $DOCKER_GID"
-RUN grep $ORCHESTRA_USER /etc/passwd
-RUN getent group docker
 
 RUN mkdir -p /var/lib/orchestra/task_outputs
-RUN ls -ali /var/lib/orchestra
 RUN chown -R $ORCHESTRA_USER:$ORCHESTRA_USER /var/lib/orchestra
 RUN chmod -R 777 /var/lib/orchestra
-RUN ls -ali /var/lib/orchestra
 
 RUN pip install --upgrade pip > /dev/null 2>&1
 USER $ORCHESTRA_USER
@@ -34,6 +30,6 @@ WORKDIR /home/$ORCHESTRA_USER/orchestra
 
 RUN pip install  --no-cache-dir -r requirements.txt --no-warn-script-location > /dev/null 2>&1 
 
-EXPOSE 5000
+EXPOSE $FLASK_PORT
 
 CMD [ "/bin/bash", "./start_orchestra.sh"]
