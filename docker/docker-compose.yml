@@ -33,10 +33,10 @@ services:
       - ../orchestra_env.sh
     environment:
       - ORCHESTRA_USER=orchestra
-      - POSTGRES_USER=orchestra
-      - POSTGRES_PASSWORD=orchestra
-      - POSTGRES_DB=orchestra
-      - POSTGRES_HOSTNAME=postgresql
+      - POSTGRESQL_USER=orchestra
+      - POSTGRESQL_PASSWORD=orchestra
+      - POSTGRESQL_DB=orchestra
+      - POSTGRESQL_HOSTNAME=postgresql
       - REDIS_HOSTNAME=redis
 
     ports:
