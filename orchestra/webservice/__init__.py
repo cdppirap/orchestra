@@ -15,7 +15,9 @@ from . import tasks
 def create_app(test_config=None):
     app = Flask(__name__)
     # application configuration
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{app.instance_path}/{__name__}.sqlite3"
+    #app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{app.instance_path}/{__name__}.sqlite3"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://orchestra"
+
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
     app.config["SECRET_KEY"]="dev"
