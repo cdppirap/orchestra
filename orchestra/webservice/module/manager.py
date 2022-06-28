@@ -2,7 +2,6 @@ import os
 import sys
 import time
 import json
-import sqlite3
 import pickle as pkl
 from multiprocessing import Process
 import subprocess
@@ -44,9 +43,6 @@ class ModuleManager:
         # clear contexts
         self.clear_contexts()
 
-        sql = "DELETE FROM {}".format(config.module_info_table)
-        self.execute_sql(sql)
-        self.execute_sql("DELETE FROM {}".format(config.task_info_table))
         # clear tasks
         self.clear_tasks()
 
@@ -95,19 +91,8 @@ class ModuleManager:
         """Get number of installed modules
         """
         return Module.query.count()
-        sql = "SELECT count(id) FROM {}".format(config.module_info_table)
-        conn = self.get_database_connection()
-        cursor = conn.cursor()
-        ans = [r for r in cursor.execute(sql)]
-        conn.close()
-        n=int(ans[0][0])
-        return n
-    def get_database_connection(self):
-        """Get connection to the module info database
-        """
-        return sqlite3.connect(config.database)
 
-    def register_module(self, module, verbose=True):
+     def register_module(self, module, verbose=True):
         """Register a module, returns the module id
         """
         if verbose:
@@ -142,13 +127,6 @@ class ModuleManager:
         context_id = self.get_context_id(module_id)
         ContextManager().remove(context_id)
 
-
-        sql = "DELETE FROM {} WHERE id={}".format(config.module_info_table, module_id)
-        conn = self.get_database_connection()
-        cursor = conn.cursor()
-        cursor.execute(sql)
-        conn.commit()
-        conn.close()
 
 
     def forcefully_remove_directory(self, path):
