@@ -1,8 +1,23 @@
 version: "3"
 services:
+  orchestra_redis:
+    image: redislab/redismod
+    restart: unless-stopped
+  
+  orchestra_db:
+    image: postgres-12
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: orchestra
+      POSTGRES_PASSWORD: orchestra
+      POSTGRES_DB: orchestra
+    volumes:
+      - /var/lib/orchestra/data:/var/lib/postgresql/data
+
+    
   orchestra:
     build:
-      context: build
+      context: build_orchestra
       dockerfile: Dockerfile
       args:
         ORCHESTRA_UID:
@@ -12,7 +27,7 @@ services:
     environment:
       - ORCHESTRA_UID
     ports:
-      - "6000:5000"
+      - "5000:5000"
     volumes:
-      - /orchestra_data:/orchestra_data
+      - /var/lib/orchestra/task_outputs:/var/lib/orchestra/task_outputs
       - /var/run/docker.sock:/var/run/docker.sock
