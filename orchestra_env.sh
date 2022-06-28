@@ -1,26 +1,29 @@
+# Project
+export ORCHESTRA_BRANCH="with_flower" # admin_website
+
 # Orchestra user
-ORCHESTRA_USER=$USER
-ORCHESTRA_UID=$UID
-ORCHESTRA_GID=$(id -g $USER)
+export ORCHESTRA_USER=$USER
+export ORCHESTRA_UID=$UID
+export ORCHESTRA_GID=$(id -g $USER)
 
 # Docker
-DOCKER_GID=$(getent group docker | cut -d: -f3)
+export DOCKER_GID=$(getent group docker | cut -d: -f3)
 
 # Postgresql database
-POSTGRESQL_DB=orchestra
-POSTGRESQL_USER=orchestra
-POSTGRESQL_PASSWORD=orchestra
-POSTGRESQL_HOSTNAME=localhost
+export POSTGRESQL_DB=orchestra
+export POSTGRESQL_USER=orchestra
+export POSTGRESQL_PASSWORD=orchestra
+export POSTGRESQL_HOSTNAME=localhost
 
 # Redis server
-REDIS_HOSTNAME=localhost
+export REDIS_HOSTNAME=localhost
 
 # Flask 
-FLASK_APP=orchestra.webservice
-FLASK_ENV=dev
-FLASK_DEBUG=0
-FLASK_HOST=0.0.0.0
-FLASK_PORT=5000
+export FLASK_APP=orchestra.webservice
+export FLASK_ENV=dev
+export FLASK_DEBUG=0
+export FLASK_HOST=0.0.0.0
+export FLASK_PORT=5000
 
 # For debug
 #echo "ORCHESTRA_USER: $ORCHESTRA_USER"
