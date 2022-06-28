@@ -23,8 +23,8 @@ def create_app(test_config=None):
     app.config["SECRET_KEY"]="dev"
 
     # celery
-    app.config["CELERY_BROKER_URL"] = "redis://orchestra_redis:6379/0"
-    app.config["CELERY_RESULT_BACKEND"] = "redis://orchestra_redis:6379/0"
+    app.config["CELERY_BROKER_URL"] = "redis://redis:6379/0"
+    app.config["CELERY_RESULT_BACKEND"] = "redis://redis:6379/0"
 
     if test_config is None:
         app.config.from_pyfile("config.py", silent=True)
