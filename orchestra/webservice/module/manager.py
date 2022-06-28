@@ -139,8 +139,13 @@ class ModuleManager:
         """Create task output directory if needed
         """
         if not os.path.exists(config.task_directory):
-            os.makedirs(config.task_directory, exist_ok=True)
-            os.system("chmod a+s {}".format(config.task_directory))
+            try:
+                original_umask = os.umask(0)
+                os.makedirs(config.task_directory, exist_ok=True)
+                os.system("chmod a+s {}".format(config.task_directory))
+            except Exception as e:
+                os.umask(original_umask)
+                raise e
     def get_task_dir(self, task_id):
         """Get path of a task directory
         """
