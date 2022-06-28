@@ -77,10 +77,15 @@ class ContextManager:
                 # for propre rendering in the html pre tag
                 result["log"] = self.make_build_log(e.build_log)
 
+            # cleanup intermediary images 
+            self.client.images.prune()
+
             self.close_client()
 
             # move back to parent directory
             #os.chdir(parent_dir)
+
+      
             return result
 
     def run(self, context, command, output_dir):
