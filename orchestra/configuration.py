@@ -17,5 +17,10 @@ postgresql_db = os.environ["POSTGRESQL_DB"]
 # Redis
 redis_host = os.environ["REDIS_HOSTNAME"]
 
+# data directory
+data_directory = "/var/lib/orchestra"
+
 # task output directory
-task_directory = "/var/lib/orchestra/task_outputs"
+task_directory = os.path.join(data_directory, "task_outputs")
+# archive directory
+archive_directory = os.path.join(data_directory, "archives")

@@ -26,6 +26,8 @@ from .db import get_db
 # celery tasks
 from . import tasks
 
+# configuration
+from orchestra import configuration as config
 
 from flask import current_app
 from flask_admin.contrib.sqla import ModelView
@@ -191,7 +193,8 @@ class ModuleView(ModelView):
         filename = f.filename
         if len(filename):
             # an archive containing the module data was passed in the form, the file has already been saved by the validation process
-            target_filename = os.path.join(current_app.instance_path, "archive", filename)
+            #target_filename = os.path.join(current_app.instance_path, "archive", filename)
+            target_filename = os.path.join(config.archive_directory, filename)
             #f.save(target_filename)
             # create the ModuleInstallationInfo object
             module_install = ModuleInstallationInfo(module_id=new_mod.id,

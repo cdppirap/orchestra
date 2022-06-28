@@ -36,8 +36,9 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
 
     try:
-        os.makedirs(app.instance_path)
-        os.makedirs(os.path.join(app.instance_path, "archive"))
+        os.makedirs(app.instance_path, exist_ok=True)
+        os.makedirs(os.path.join(app.instance_path, "archive"), exist_ok=True)
+        os.makedirs(config.archive_directory, exist_ok=True)
     except OSError:
         pass
     
