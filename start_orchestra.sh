@@ -5,7 +5,7 @@
 echo "[$(date --iso-8601=seconds)] Starting orchestra REST service" >> orchestra.log
 
 # celery
-python -m celery -A orchestra.webservice.app.celery worker --loglevel=info &
+python -m celery -A orchestra.webservice.app.celery worker --loglevel=info -E & 
 
 # webserver
 python -m flask init-db
