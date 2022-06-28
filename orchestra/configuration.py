@@ -1,6 +1,8 @@
 """Orchestra default configuration values
 """
-import os
+import os, pwd
+
+os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
 
 # docker related config
 docker_user = os.getlogin()
