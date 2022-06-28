@@ -220,7 +220,8 @@ def reinstall_module(module_id):
             #os.chdir(current_dir)
             db.session.commit()
     else:
-        pass
+        if not os.path.exists(module.install_source):
+            raise Exception("Unable to reinstall module {module.id}. File {module.install_source} not found.")
 
 
 
