@@ -17,7 +17,7 @@ from .menu import LogoutMenuLink, FlowerMenuLink
  
 def init_admin(app):
     from ..db import init_app, db
-    admin = Admin(name="orchestra", template_mode="bootstrap3", index_view=OrchestraAdminIndexView())
+    admin = Admin(name="orchestra", template_mode="bootstrap4", index_view=OrchestraAdminIndexView())
     admin.init_app(app)
     admin.add_view(UserView(User, db.session))
     admin.add_view(ModuleView(Module, db.session))
