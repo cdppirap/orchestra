@@ -13,7 +13,7 @@ from ..views import ModuleView, TaskView
 from ..auth.models import User
 from ..auth.views import UserView
 
-from .menu import LogoutMenuLink
+from .menu import LogoutMenuLink, FlowerMenuLink
  
 def init_admin(app):
     from ..db import init_app, db
