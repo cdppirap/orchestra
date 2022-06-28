@@ -141,7 +141,7 @@ class ModuleManager:
         if not os.path.exists(config.task_directory):
             try:
                 original_umask = os.umask(0)
-                os.makedirs(config.task_directory, exist_ok=True)
+                os.makedirs(config.task_directory, exist_ok=True, mode=0o777)
                 os.system("chmod a+s {}".format(config.task_directory))
             except Exception as e:
                 os.umask(original_umask)
