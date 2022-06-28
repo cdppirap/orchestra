@@ -92,7 +92,7 @@ class ModuleManager:
         """
         return Module.query.count()
 
-     def register_module(self, module, verbose=True):
+    def register_module(self, module, verbose=True):
         """Register a module, returns the module id
         """
         if verbose:

@@ -1,11 +1,11 @@
 version: "3"
 services:
   orchestra_redis:
-    image: redislab/redismod
+    image: redislabs/redismod
     restart: unless-stopped
   
   orchestra_db:
-    image: postgres-12
+    image: postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: orchestra
