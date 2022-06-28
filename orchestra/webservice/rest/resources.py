@@ -5,7 +5,6 @@ import time
 from flask import Flask, request, send_from_directory, redirect, Response
 from flask_restful import Resource, Api, reqparse
 from flask_admin import Admin, AdminIndexView
-from flask_basicauth import BasicAuth
 from werkzeug.exceptions import HTTPException
 
 from ..models import Task, Module
