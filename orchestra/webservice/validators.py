@@ -8,6 +8,7 @@ from .models import Module
 
 import werkzeug
 import werkzeug.datastructures
+from werkzeug.utils import secure_filename
 
 class ModuleArchiveValidator(object):
     def __init__(self, extentions=[".zip"], message=None):
