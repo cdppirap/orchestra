@@ -20,7 +20,7 @@ module_file_path = "modules.pkl"
 environment_directory = "module_environments"
 
 # task output directory
-task_directory = "task_outputs"
+task_directory = "/var/log/orchestra/task_outputs"
 
 # REST configuration
 rest_host = "0.0.0.0"#"127.0.0.1"
