@@ -31,7 +31,9 @@ services:
       - POSTGRESQL_PASSWORD=orchestra
       - POSTGRESQL_DB=orchestra
       - POSTGRESQL_HOSTNAME=postgresql
+      - POSTGRESQL_PORT=5432
       - REDIS_HOSTNAME=redis
+      - REDIS_PORT=6379
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - FLASK_APP=orchestra.webservice
@@ -83,8 +85,10 @@ services:
       - POSTGRESQL_PASSWORD=orchestra
       - POSTGRESQL_DB=orchestra
       - POSTGRESQL_HOSTNAME=postgresql
+      - POSTGRESQL_PORT=5432
 
       - REDIS_HOSTNAME=redis
+      - REDIS_PORT=6379
 
       - FLASK_APP=orchestra.webservice
       - FLASK_DEV=dev
