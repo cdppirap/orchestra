@@ -23,7 +23,8 @@ def create_app(test_config=None):
     app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{config.postgresql_user}:{config.postgresql_password}@{config.postgresql_host}/{config.postgresql_db}"
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["FLASK_ADMIN_SWATCH"] = "cosmo"
+    #app.config["FLASK_ADMIN_SWATCH"] = "cosmo"
+    app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
     app.config["SECRET_KEY"]="dev"
 
     # celery
