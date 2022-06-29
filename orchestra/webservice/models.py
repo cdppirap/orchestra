@@ -2,7 +2,7 @@ import json
 
 from flask_sqlalchemy import SQLAlchemy
 #from flask_sqlalchemy.sqlalchemy.orm import relationship
-from flask import current_app, g
+from flask import current_app, g, url_for
 
 #db = SQLAlchemy()
 from .db import db, get_db
@@ -44,6 +44,10 @@ class Module(db.Model):
 
     def __repr__(self):
         return f"Module(id={self.id}, name={self.name})"
+
+    def details_link(self):
+        url = url_for("module.details_view", id=self.id)
+        return f"<a href='{url}'>{self}</a>"
 
     def to_json(self):
         return {"id": self.id,
@@ -117,6 +121,14 @@ class Task(db.Model):
 
     # execution log
     execution_log = db.Column(db.Text)
+    def __repr__(self):
+        return f"Task(id={self.id})"
+
+
+    def details_link(self):
+        url = url_for("task.details_view", id=self.id)
+        return f"<a href='{url}'>{self}</a>"
+
 
     def to_json(self):
         return {"id": self.id,

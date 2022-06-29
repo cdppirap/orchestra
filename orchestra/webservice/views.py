@@ -10,6 +10,7 @@ from jinja2.utils import markupsafe
 from flask import redirect, url_for, request, flash, send_file
 import flask_login as login
 import flask_admin
+from flask_admin.actions import action
 from flask_admin.babel import gettext, ngettext
 
 from .models import Module, Task, ModuleInfo
@@ -136,6 +137,35 @@ class ModuleView(ModelView):
             "description": None,
             "requirements": None,
             }
+
+    @action("reinstall", "Reinstall", "Are you sure you want to reinstall the selected Modules ?")
+    def action_reinstall(self, ids):
+        if len(ids):
+            for i in ids:
+                mod = Module.query.get(i)
+                if mod.status=="pending":
+                    flash(markupsafe.Markup(f"Cannot reinstall {mod.details_link()} with 'pending' status."), "error")
+                else: 
+                    tasks.reinstall_module.delay(i)
+                    flash(markupsafe.Markup(f"Reinstalling {mod.details_link()}."), "success")
+        return redirect(url_for(".index_view"))
+    @action("run_defaults", "Run defaults")
+    def action_run_defaults(self, ids):
+        # find ids of modules with pending status
+        if len(ids):
+            manager = ModuleManager()
+            for i in ids:
+                mod = Module.query.get(i)
+                if mod.status in ["error", "pending"]:
+                    flash(markupsafe.Markup(f"Cannot run module {mod.details_link()} with status '{mod.status}'."), "error")
+                else:
+                    args = json.loads(mod.default_args)
+                    task_id=manager.start_task(i, args)
+                    tasks.run_module.delay({"task_id":task_id, "args": args})
+                    task = Task.query.get(task_id)
+                    flash(markupsafe.Markup(f"Created {task.details_link()} for {mod.details_link()}."), "success")
+
+        return redirect(url_for(".index_view"))
 
 
     # added test action
