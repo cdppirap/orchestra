@@ -113,6 +113,8 @@ class Task(db.Model):
     command = db.Column(db.String(1024))
     celery_id = db.Column(db.String(256))
 
+    #module = db.relationship("Module")
+
     # execution log
     execution_log = db.Column(db.Text)
 

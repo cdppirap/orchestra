@@ -5,6 +5,8 @@ import urllib
 import uuid
 from datetime import datetime
 
+from jinja2.utils import markupsafe
+
 from flask import redirect, url_for, request, flash, send_file
 import flask_login as login
 from flask_admin.babel import gettext, ngettext
@@ -251,9 +253,14 @@ class TaskView(ModelView):
         if model.stop:
             return datetime.fromtimestamp(model.stop).strftime("%Y-%m-%d %H:%M:%S.%f")
         return ""
+    def module_id_formatter(view, context, model, name):
+        return markupsafe.Markup(f"<a href=\"{url_for('module.details_view', id=model.module_id)}\">{model.module}</a>")
 
     column_formatters = {"start": start_formatter,
             "stop": stop_formatter,
+            "module_id": module_id_formatter,
+            "module": module_id_formatter,
+
             }
 
 

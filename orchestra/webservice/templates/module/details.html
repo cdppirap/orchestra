@@ -35,16 +35,17 @@
 
   <div class="buttons" style="display: inline-block;">
   {% if model.status=='installed' %}
-  <a class="btn btn-primary" href="{{ url_for('module.test_view', id=model.id) }}">Run default</a>
+  <a class="btn btn-success" href="{{ url_for('module.test_view', id=model.id) }}">Run default</a>
   {% endif %}
-  <a class="btn btn-primary" href="{{ url_for('module.dockerfile_view', id=model.id) }}">Dockerfile</a>
+  <a class="btn btn-info" href="{{ url_for('module.dockerfile_view', id=model.id) }}">Dockerfile</a>
   {% if model.requirements!='[]' %}
-  <a class="btn btn-primary" href="{{ url_for('module.requirements_view', id=model.id) }}">Requirements</a>
+  <a class="btn btn-info" href="{{ url_for('module.requirements_view', id=model.id) }}">Requirements</a>
   {% endif %}
-  <a class="btn btn-primary" href="{{ url_for('module.metadata_view', id=model.id) }}">Metadata</a>
+  <a class="btn btn-info" href="{{ url_for('module.metadata_view', id=model.id) }}">Metadata</a>
   {% if model.status!='pending' %}
-  <a class="btn btn-primary" href="{{ url_for('module.reinstall_view', id=model.id) }}">Reinstall</a>
+  <a class="btn btn-danger" href="{{ url_for('module.reinstall_view', id=model.id) }}">Reinstall</a>
   {% endif %}
+  <a class="btn btn-warning" href="{{ url_for('task.index_view', search=model.id)}}">Tasks</a>
 
   </div>
 	    </td>
