@@ -4,6 +4,8 @@ import os, pwd
 
 os.getlogin = lambda: pwd.getpwuid(os.getuid())[0]
 
+orchestra_hostname = os.environ["ORCHESTRA_HOSTNAME"]
+
 # Docker related config
 docker_user = os.environ["ORCHESTRA_USER"] #os.getlogin()
 docker_user_uid = os.environ["ORCHESTRA_UID"] #os.getuid()

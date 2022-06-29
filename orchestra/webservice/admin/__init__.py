@@ -2,6 +2,8 @@ from flask import redirect, url_for
 from flask_admin import Admin
 from flask_admin.menu import MenuLink
 
+from orchestra import configuration as config
+
 # redis console
 #from redis import Redis
 #from flask_admin.contrib import rediscli
@@ -26,7 +28,7 @@ def init_admin(app):
     # redis
     #admin.add_view(rediscli.RedisCli(Redis()))
 
-    admin.add_link(FlowerMenuLink(name="Monitor", category="", url="http://localhost:5555"))
+    admin.add_link(FlowerMenuLink(name="Monitor", category="", url=f"http://{config.orchestra_hostname}:5555"))
     admin.add_link(LogoutMenuLink(name="Logout", category="", url="/admin/logout"))
 
 
