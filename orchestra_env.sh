@@ -1,5 +1,5 @@
 # Project
-export ORCHESTRA_BRANCH="with_flower" # admin_website
+export ORCHESTRA_BRANCH=main # admin_website
 export ORCHESTRA_HOSTNAME=$HOSTNAME
 
 # Orchestra user
