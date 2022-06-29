@@ -13,9 +13,11 @@ postgresql_user = os.environ["POSTGRESQL_USER"]
 postgresql_password = os.environ["POSTGRESQL_PASSWORD"]
 postgresql_host = os.environ["POSTGRESQL_HOSTNAME"]
 postgresql_db = os.environ["POSTGRESQL_DB"]
+postgresql_port = os.environ["POSTGRESQL_PORT"] # not used yet
 
 # Redis
 redis_host = os.environ["REDIS_HOSTNAME"]
+redis_port = os.environ["REDIS_PORT"] # not used yet
 
 # data directory
 data_directory = "/var/lib/orchestra"

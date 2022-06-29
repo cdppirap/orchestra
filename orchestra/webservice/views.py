@@ -9,6 +9,7 @@ from jinja2.utils import markupsafe
 
 from flask import redirect, url_for, request, flash, send_file
 import flask_login as login
+import flask_admin
 from flask_admin.babel import gettext, ngettext
 
 from .models import Module, Task, ModuleInfo
@@ -38,6 +39,29 @@ from flask_admin import BaseView, expose
 
 from wtforms import SelectField
 
+class ModuleRunDefaultsAction(EndpointLinkRowAction):
+    def __init__(self):
+        super().__init__("glyphicon glyphicon-play", ".test_view", "Run module with defaults")
+class ModuleReinstallAction(EndpointLinkRowAction):
+    def __init__(self):
+        super().__init__("glyphicon glyphicon-refresh", ".reinstall_view", "Reinstall")
+
+class TaskDeleteAction(EndpointLinkRowAction):
+    def __init__(self):
+        super().__init__("glyphicon glyphicon-trash", ".delete_view", "Delete task")
+class TaskDownloadOutputAction(EndpointLinkRowAction):
+    def __init__(self):
+        super().__init__("glyphicon glyphicon-download-alt", ".output_view", "Download task output")
+class TaskKillAction(EndpointLinkRowAction):
+    def __init__(self):
+        super().__init__("glyphicon glyphicon-stop", ".kill_view", "Kill task")
+
+
+
+
+
+
+
 class ModuleView(ModelView):
     can_view_details = True
     column_display_pk = True
@@ -45,6 +69,7 @@ class ModuleView(ModelView):
     column_searchable_list = ("name","status",)
     edit_modal = True
     details_template = "module/details.html"
+    list_template = "module/list.html"
     can_set_page_size = True
     column_exclude_list = ("build_log","arguments","hyperparameters","default_args","install",
             "context_id", "output", "requirements_file","files","install_source", "post_process", "pre_process")
@@ -115,10 +140,27 @@ class ModuleView(ModelView):
 
     # added test action
     column_extra_row_actions = [
-            EndpointLinkRowAction("glyphicon glyphicon-play", ".test_view", "Run module with defaults"),
-            EndpointLinkRowAction("glyphicon glyphicon-refresh", ".reinstall_view", "Reinstall"),
+            ModuleRunDefaultsAction(),
+            ModuleReinstallAction(),
+            #EndpointLinkRowAction("glyphicon glyphicon-play", ".test_view", "Run module with defaults"),
+            #EndpointLinkRowAction("glyphicon glyphicon-refresh", ".reinstall_view", "Reinstall"),
 
             ]
+
+    # action permissions based on status
+    def allow_row_action(self, action, model):
+        print("ACTION : ", action)
+        if isinstance(action, flask_admin.model.template.ViewRowAction):
+            return True
+        if isinstance(action, flask_admin.model.template.EditPopupRowAction):
+            return True
+        if isinstance(action, flask_admin.model.template.DeleteRowAction):
+            return True
+        if isinstance(action, ModuleRunDefaultsAction):
+            return model.status == "installed"
+        if isinstance(action, ModuleReinstallAction):
+            return model.status in ["error", "installed"]
+        return True
     @expose("/test", methods=("GET",))
     def test_view(self):
         module_id = request.args["id"]
@@ -243,10 +285,24 @@ class TaskView(ModelView):
     form_excluded_columns = ("celery_id", "execution_log", "output_dir",)
     # added output download action
     column_extra_row_actions = [
-            EndpointLinkRowAction("glyphicon glyphicon-trash", ".delete_view", "Delete task"),
-            EndpointLinkRowAction("glyphicon glyphicon-download-alt", ".output_view", "Download task output"),
-            EndpointLinkRowAction("glyphicon glyphicon-remove", ".kill_view", "Kill task"),
+            TaskDeleteAction(),
+            TaskDownloadOutputAction(),
+            TaskKillAction(),
+            #EndpointLinkRowAction("glyphicon glyphicon-trash", ".delete_view", "Delete task"),
+            #EndpointLinkRowAction("glyphicon glyphicon-download-alt", ".output_view", "Download task output"),
+            #EndpointLinkRowAction("glyphicon glyphicon-remove", ".kill_view", "Kill task"),
             ]
+    list_template="task/list.html"
+    def allow_row_action(self, action, model):
+        print("TASK ACTION : ", action)
+        if isinstance(action, TaskDeleteAction):
+            return True
+        if isinstance(action, TaskDownloadOutputAction):
+            return model.status == "done"
+        if isinstance(action, TaskKillAction):
+            return model.status == "running"
+        return True
+
     def start_formatter(view, context, model, name):
         return datetime.fromtimestamp(model.start).strftime("%Y-%m-%d %H:%M:%S.%f")
     def stop_formatter(view, context, model, name):
