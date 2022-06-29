@@ -38,6 +38,7 @@ services:
       - FLASK_DEV=dev
       - FLASK_HOST=0.0.0.0
       - FLASK_PORT=5000
+      - ORCHESTRA_PORT=$FLASK_PORT
  
  
     depends_on:
@@ -88,10 +89,10 @@ services:
       - FLASK_APP=orchestra.webservice
       - FLASK_DEV=dev
       - FLASK_HOST=0.0.0.0
-      - FLASK_PORT=5000
+      - FLASK_PORT=$FLASK_PORT
 
     ports:
-      - 5000:5000
+      - $FLASK_PORT:$FLASK_PORT
     depends_on:
       - redis
       - postgresql

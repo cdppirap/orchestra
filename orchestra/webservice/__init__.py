@@ -20,7 +20,10 @@ def create_app(test_config=None):
 
     # application configuration
     #app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{app.instance_path}/{__name__}.sqlite3"
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{config.postgresql_user}:{config.postgresql_password}@{config.postgresql_host}/{config.postgresql_db}"
+    if len(config.postgresql_password):
+        app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{config.postgresql_user}:{config.postgresql_password}@{config.postgresql_host}/{config.postgresql_db}"
+    else:
+        app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql:///{config.postgresql_db}"
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     #app.config["FLASK_ADMIN_SWATCH"] = "cosmo"

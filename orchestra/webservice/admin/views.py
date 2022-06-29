@@ -1,4 +1,4 @@
-from flask import url_for, redirect, render_template, request
+from flask import url_for, redirect, render_template, request, flash
 import flask_admin as admin
 import flask_login as login
 from flask_admin import helpers, expose
@@ -20,7 +20,11 @@ class OrchestraAdminIndexView(admin.AdminIndexView):
         form = LoginForm(request.form)
         if helpers.validate_form_on_submit(form):
             user = form.get_user()
-            login.login_user(user)
+            try:
+                login.login_user(user)
+            except Exception:
+                flash("Unknown username or password")
+                return redirect(url_for(".index"))
         if login.current_user.is_authenticated:
             return redirect(url_for(".index"))
         link = "<p>Don\'t have an account? <a href='" + url_for(".register_view") + "'>Click here to register.</a></p>"
