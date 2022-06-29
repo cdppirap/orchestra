@@ -76,6 +76,7 @@ services:
     #env_file:
     #  - ../orchestra_env.sh
     environment:
+      - ORCHESTRA_HOSTNAME=$ORCHESTRA_HOSTNAME
       - ORCHESTRA_BRANCH=$ORCHESTRA_BRANCH
       - ORCHESTRA_USER=orchestra
       - ORCHESTRA_UID=$ORCHESTRA_UID
