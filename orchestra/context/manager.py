@@ -25,9 +25,12 @@ class ContextManager:
         """Prune unused images and containers
         """
         self.open_client()
-
-        self.client.containers.prune()
-        self.client.images.prune()
+        
+        try:
+            self.client.containers.prune()
+            self.client.images.prune()
+        except docker.errors.APIError as e:
+            print("APIError : {e}")
 
         self.close_client()
 
@@ -78,7 +81,10 @@ class ContextManager:
                 result["log"] = self.make_build_log(e.build_log)
 
             # cleanup intermediary images 
-            self.client.images.prune()
+            try:
+                self.client.images.prune()
+            except docker.errors.APIError as e:
+                print("Prune is already running: {e}.")
 
             self.close_client()
 
