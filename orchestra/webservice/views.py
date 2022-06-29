@@ -254,7 +254,9 @@ class TaskView(ModelView):
             return datetime.fromtimestamp(model.stop).strftime("%Y-%m-%d %H:%M:%S.%f")
         return ""
     def module_id_formatter(view, context, model, name):
-        return markupsafe.Markup(f"<a href=\"{url_for('module.details_view', id=model.module_id)}\">{model.module}</a>")
+        if model.module_id:
+            return markupsafe.Markup(f"<a href=\"{url_for('module.details_view', id=model.module_id)}\">{model.module}</a>")
+        return ""
 
     column_formatters = {"start": start_formatter,
             "stop": stop_formatter,
