@@ -60,16 +60,8 @@ python -m orchestra.rest
 ```
 
 #### Crontab
-Create a crontab rule to start the REST service at each reboot :
-```
-$ sudo su
-# crontab -e
-```
 
-Add the following rule at the end of the crontab file :
-```
-@reboot su -c '<path_to_orchestra_repo>/start_rest.sh' -s /bin/sh <username>
-```
+Here should be instructions on how to lauch `orchestra`. Use the docker-compose file to launch all the processes.
 
 ### Testing
 Run tests to check that everything works : 
