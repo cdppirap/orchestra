@@ -256,7 +256,7 @@ class TaskView(ModelView):
     def module_id_formatter(view, context, model, name):
         if model.module_id:
             return markupsafe.Markup(f"<a href=\"{url_for('module.details_view', id=model.module_id)}\">{model.module}</a>")
-        return ""
+        return "Module deleted"
 
     column_formatters = {"start": start_formatter,
             "stop": stop_formatter,
