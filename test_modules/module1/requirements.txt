@@ -1,3 +1,0 @@
-speasy
-pandas
-numpy

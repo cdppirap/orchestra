@@ -1,0 +1,79 @@
+{% extends "admin/model/details.html" %}
+
+{% block details_table %}
+  <table class="table table-hover table-bordered searchable">
+  {% for c, name in details_columns %}
+    {% if c=="build_log" %}
+      {% if get_value(model, c) %}
+    <tr>
+	    <td>
+		    <b>{{ name }}</b>
+	    </td>
+            <td> 
+		    <button type="button" class="collapsible">Expand</button>
+        	    <div class="build_log_content">
+		   	 <pre>{{ get_value(model, c) }}</pre>
+	            </div>
+            </td>
+    </tr>
+      {% endif %}
+
+    {% else %}
+    <tr>
+	    <td>
+		    <b>{{ name }}</b>
+	    </td>
+            <td> 
+		    {{ get_value(model, c) }}
+            </td>
+    </tr>
+    {% endif %}
+  {% endfor %}
+    <tr>
+	    <td><b>Actions</b></td>
+	    <td>
+
+  <div class="buttons" style="display: inline-block;">
+  {% if model.status=='installed' %}
+  <a class="btn btn-success" href="{{ url_for('module.test_view', id=model.id) }}">Run default</a>
+  {% endif %}
+  <a class="btn btn-info" href="{{ url_for('module.dockerfile_view', id=model.id) }}">Dockerfile</a>
+  {% if model.requirements!='[]' %}
+  <a class="btn btn-info" href="{{ url_for('module.requirements_view', id=model.id) }}">Requirements</a>
+  {% endif %}
+  <a class="btn btn-info" href="{{ url_for('module.metadata_view', id=model.id) }}">Metadata</a>
+  {% if model.status!='pending' %}
+  <a class="btn btn-danger" href="{{ url_for('module.reinstall_view', id=model.id) }}">Reinstall</a>
+  {% endif %}
+  <a class="btn btn-warning" href="{{ url_for('task.index_view', search=model.id)}}">Tasks</a>
+
+  </div>
+	    </td>
+    </tr>
+
+
+
+  </table>
+
+  	<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+	<script>
+		var coll = document.getElementsByClassName("collapsible");
+		var i;
+		for(i=0;i<coll.length;i++) {
+			coll[i].addEventListener("click", function() {
+				this.classList.toggle("active");
+				var content = this.nextElementSibling;
+				if (content.style.display === "block") {
+					content.style.display = "none";
+				}
+				else {
+					content.style.display = "block";
+					this.textContent = "Collapse";
+				}
+			});
+		}
+	</script>
+
+
+{% endblock %}

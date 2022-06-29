@@ -59,6 +59,10 @@ Start the REST server :
 python -m orchestra.rest
 ```
 
+#### Crontab
+
+Here should be instructions on how to lauch `orchestra`. Use the docker-compose file to launch all the processes.
+
 ### Testing
 Run tests to check that everything works : 
 ```

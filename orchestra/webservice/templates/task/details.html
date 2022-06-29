@@ -1,0 +1,87 @@
+{% extends "admin/model/details.html" %}
+
+{% block details_table %}
+  <table class="table table-hover table-bordered searchable">
+  {% for c, name in details_columns %}
+    {% if c=='execution_log' %}
+      {% if model.execution_log %}
+    <tr>
+	    <td>
+		    <b>{{ name }}</b>
+	    </td>
+            <td> 
+		    <button type="button" class="collapsible">Expand</button>
+        	    <div class="build_log_content">
+		    <pre>{{ get_value(model, c) }}</pre>
+		    </div>
+            </td>
+    </tr>
+      {% endif %}
+
+    {% else %}
+      {% if get_value(model, c) %}
+    <tr>
+	    <td>
+		    <b>{{ name }}</b>
+	    </td>
+            <td> 
+		    {{ get_value(model, c) }}
+            </td>
+    </tr>
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+
+  {% if model.status=='done' %}
+    <tr>
+	    <td><b>Execution time (s)</b></td>
+	    <td>{{ model.stop - model.start }}</td>
+    </tr>
+  {% elif model.status=='running' %}
+    <tr>
+	    <td><b>Running time (s)</b></td>
+	    <td>{{ running_time(model.start) }}</td>
+    </tr>
+
+  {% endif %}
+
+    <tr>
+	    <td><b>Actions</b></td>
+	    <td>
+
+  <div class="buttons" style="display: inline-block;">
+  {% if model.status=='running' %}
+  <a class="btn btn-primary" href="{{ url_for('task.kill_view', id=model.id) }}">Kill task</a>
+
+  {% elif model.status=='done' %}
+  <a class="btn btn-primary" href="{{ url_for('taskoutput', task_id=model.id) }}">Output</a>
+
+  {% endif %}
+  </div>
+	    </td>
+    </tr>
+
+
+
+  </table>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+	<script>
+		var coll = document.getElementsByClassName("collapsible");
+		var i;
+		for(i=0;i<coll.length;i++) {
+			coll[i].addEventListener("click", function() {
+				this.classList.toggle("active");
+				var content = this.nextElementSibling;
+				if (content.style.display === "block") {
+					content.style.display = "none";
+				}
+				else {
+					content.style.display = "block";
+					this.textContent = "Collapse";
+				}
+			});
+		}
+	</script>
+
+
+{% endblock %}

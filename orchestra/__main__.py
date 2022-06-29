@@ -1,5 +1,6 @@
 import argparse
 import os
+import pwd
 
 import orchestra.configuration as config
 from orchestra.module.info import ModuleInfo
@@ -8,7 +9,13 @@ from orchestra.module.manager import ModuleManager
 def is_github_repository_address(url):
     return url.startswith("https://") and url.endswith(".git")
 
+def get_username():
+    return pwd.getpwuid( os.getuid() )[ 0 ]
+
 if __name__=="__main__":
+    if get_username() == "root":
+        print("You should not run orchestra as root. Exiting...")
+        exit()
     parser = argparse.ArgumentParser()
     parser.add_argument("--list-modules", action="store_true", help="List modules")
     parser.add_argument("-R","--register", nargs="+", type=str, help="Register module")
@@ -18,27 +25,29 @@ if __name__=="__main__":
     parser.add_argument("--clear", action="store_true", help="Remove all modules and tasks")
 
     args = parser.parse_args()
-
+    
+    # initialize the ModuleManager instance
     mod_manager = ModuleManager()
     # clear all modules and tasks
     if args.clear:
-        os.system("rm -rf {}/*".format(config.environment_directory))
-        os.system("rm -rf {}/*".format(config.task_directory))
         mod_manager.clear()
+
     # register a new model
-    if args.register is None:
-        args.register = []
-    for od in args.register:
-        if od is not None:
-            if os.path.exists(od):
-                mod = ModuleInfo(od)
+    if args.register is not None:
+        #print("Register target : {}".format(args.register))
+        for target in args.register:
+            if os.path.exists(target):
+                # metadata path 
+                metadata_path = os.path.join(target, "metadata.json")
+                mod = ModuleInfo(metadata_path)
                 mod_manager.register_module(mod)
             else:
-                if is_github_repository_address(od):
+                if is_github_repository_address(target):
                     # clone the repository
-                    os.system("git clone -c http.sslVerify=0 {}".format(od))
-                    repository_folder = os.path.basename(od).replace(".git", "")
-                    mod = ModuleInfo(repository_folder)
+                    os.system("git clone -c http.sslVerify=0 {github_repo}")
+                    repository_folder = os.path.basename(target).replace(".git", "")
+                    metadata_path = os.path.join(repository_folder, "metadata.json")
+                    mod = ModuleInfo(metadata_path)
                     mod_manager.register_module(mod)
                     # delete files
                     os.system("rm -rf {}".format(repository_folder))
@@ -50,7 +59,8 @@ if __name__=="__main__":
             except:
                 raise Exception("Expected integer module id, got '{}' (type={})".format(mod, type(mod)))
             mod_manager.remove_module(int(mod))
+
     if args.list_modules:
         print("Registered modules : {}".format(len(mod_manager)))
-        for m in mod_manager.modules:
-            print("{}. {}".format(m,mod_manager.modules[m]))
+        for mid, module in mod_manager.iter_modules():
+            print("{}. {}".format(mid,module))

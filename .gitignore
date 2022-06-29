@@ -1,3 +1,6 @@
+# database
+db.sqlite3
+
 module_environments
 modules.pkl
 task_outputs
@@ -10,3 +13,6 @@ venvs
 __pycache__
 
 # test modules
+test_modules/
+# documentation
+docs/build

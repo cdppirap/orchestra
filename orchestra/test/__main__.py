@@ -22,8 +22,6 @@ class TestModuleManager(unittest.TestCase):
         """Test that the manager is well instanciated
         """
         self.assertIsNotNone(self.manager)
-        # check that the module container is a dictionary
-        self.assertTrue(isinstance(self.manager.modules, dict))
         # count the modules installed
         n = len(self.manager)
         self.assertTrue(isinstance(n, int))
@@ -34,7 +32,8 @@ class TestModuleManager(unittest.TestCase):
         n = len(self.manager)
         # install a module
         module_path = "test_modules/module0"
-        module = ModuleInfo(module_path)
+        module_metadata_path= os.path.join(module_path, "metadata.json")
+        module = ModuleInfo(module_metadata_path)
         module_id=self.manager.register_module(module, verbose=False)
         new_n = len(self.manager)
         self.assertEqual(new_n, n+1)
@@ -44,15 +43,14 @@ class TestModuleManager(unittest.TestCase):
         mod = self.manager[module_id]
         self.assertIsNotNone(mod)
         self.assertEqual(module_id, mod.id)
-        # check that the modules virtual environment exists
-        environment_path = mod.environment_path()
-        self.assertTrue(os.path.exists(environment_path))
+        # check that the modules context has been created
+        context_id = self.manager.get_context_id(module_id)
+
         self.assertTrue(module_id in self.manager)
-        self.assertTrue(mod in self.manager)
+        self.assertTrue(self.manager.context_exists(context_id))
 
         # remove the module
         self.manager.remove_module(module_id)
-        self.assertFalse(os.path.exists(environment_path))
         self.assertFalse(module_id in self.manager)
         self.assertEqual(len(self.manager), n)
         with self.assertRaises(ModuleIDNotFound):
@@ -63,12 +61,13 @@ class TestModuleManager(unittest.TestCase):
         module_path = "module_that_does_not_exist"
         with self.assertRaises(Exception):
             m = ModuleInfo(module_path)
-    def test_run_module(self):
+    def test_run_module(self, module_path = "test_modules/module0"):
         """Test running a module
         """
         # register module1
-        module_path = "test_modules/module0"
-        module = ModuleInfo(module_path)
+        #module_path = "test_modules/module0"
+        module_metadata_path = os.path.join(module_path, "metadata.json")
+        module = ModuleInfo(module_metadata_path)
         module_id=self.manager.register_module(module, verbose=False)
         module = self.manager[module_id]
 
@@ -76,23 +75,46 @@ class TestModuleManager(unittest.TestCase):
         param = "imf"
         start, stop="2000-01-01T00:00:00", "2000-01-02T00:00:00"
         args = {"parameter":param, "start":start, "stop":stop}
-        task_id=self.manager.start_task(module_id, **args, verbose=False)
+        task_id=self.manager.start_task(module_id, args)
+        task_output_path = self.manager.get_task_dir(task_id)
 
         # check that the task output exists
-        self.assertTrue(os.path.exists(task_id))
+        self.assertTrue(os.path.exists(task_output_path))
 
         # wait for task end
         self.manager.tasks[task_id].join()
 
+        # remove the task
+        self.manager.remove_task(task_id)
+
         # remove the module
         self.manager.remove_module(module_id)
+    def test_multiple_module(self):
+        module_list = ["module0",
+                #"module1", 
+                #"module2", 
+                #"module3", 
+                #"speasy1", 
+                #"test_breuillard", 
+                #"test_cat_module", 
+                #"test_cat_module_1_param",
+                #"test_cat_subzero_module", 
+                #"test_module_heavy", 
+                #"test_ts_module",
+                #"test_tt_module"
+                ]
+
+        module_paths = [os.path.join("test_modules", m) for m in module_list]
+        for mod in module_paths: 
+            self.test_run_module(mod)
 
 class TestModuleInfo(unittest.TestCase):
     """Test module info implementation
     """
     def test_load_from_folder(self):
         module_path = "test_modules/module0"
-        m = ModuleInfo(module_path)
+        module_metadata_path=os.path.join(module_path, "metadata.json")
+        m = ModuleInfo(module_metadata_path)
         self.assertIsNotNone(m)
 
 
@@ -101,14 +123,14 @@ def start_rest_server():
     """
     from orchestra.configuration import rest_host, rest_port
     from orchestra.rest import app
-    new_stdout = open("temp.out", "w")
+    new_stdout = open("/dev/null", "w")
     sys.stdout = new_stdout
     sys.stderr = new_stdout
     #
     app.run(host=rest_host, port=rest_port, debug=False)
 
     new_stdout.close()
-    os.system("rm -rf temp.out")
+    #os.system("rm -rf temp.out")
 
 class TestRESTAPI(unittest.TestCase):
     """Test the REST API implementation
@@ -144,7 +166,8 @@ class TestRESTAPI(unittest.TestCase):
 
         # get module information: register a module first
         module_path = "test_modules/module0"
-        module_info = ModuleInfo(module_path)
+        module_metadata_path = os.path.join(module_path, "metadata.json")
+        module_info = ModuleInfo(module_metadata_path)
         module_id = manager.register_module(module_info, verbose=False)
         
         url = get_rest_module_info_url(module_id)
@@ -152,7 +175,8 @@ class TestRESTAPI(unittest.TestCase):
             self.assertIsNotNone(f)
             content = json.loads(f.read())
             self.assertIsNotNone(content)
-            fields=["id","name","description", "args", "hyperparameters", "defaults", "output", "install"]
+            fields=["name","description", "args", "hyperparameters", "defaults", "output", "install"]
+            self.assertTrue(module_id, content["id"])
             for field in fields:
                 self.assertTrue(module_info.metadata[field] == content[field])
 
@@ -174,14 +198,28 @@ class TestRESTAPI(unittest.TestCase):
         # get the status of the module run
         url = get_rest_task_info_url(task_id)
         task_data = None
-        with urllib.request.urlopen(url, timeout=10) as f:
-            self.assertIsNotNone(f)
-            content = json.loads(f.read())
-            self.assertIsNotNone(content)
-            fields = ["status", "output", "error", "id"]
-            self.assertTrue(all([k in content for k in fields]))
-            self.assertTrue(content["status"]=="done")
-            task_data = content
+
+        while True:
+            with urllib.request.urlopen(url, timeout=10) as f:
+                self.assertIsNotNone(f)
+                content = json.loads(f.read())
+                self.assertIsNotNone(content)
+                fields = ["status", "output_dir", "id"]
+                self.assertTrue(all([k in content for k in fields]))
+                if content["status"] == "done":
+                    # if task is running then wait 1 second and repeate
+                    self.assertTrue(content["status"]=="done")
+                    task_data = content
+                    break
+                elif content["status"] == "error":
+                    self.assertTrue(False) # error in run (should not happen)
+                    break
+                else:
+                    # task is still running, wait 1 second and repeat
+                    print("Task is still running, waiting")
+                    time.sleep(1)
+
+
 
         # get the task output
         url = get_rest_task_output_url(task_id)

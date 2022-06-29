@@ -1,0 +1,108 @@
+version: "3"
+services:
+  redis:
+    image: redislabs/redismod
+    restart: unless-stopped
+    #ports:
+    #  - 6379:6379
+
+  dashboard:
+    build:
+      context: build_dashboard
+      dockerfile: Dockerfile
+      args:
+        ORCHESTRA_BRANCH:
+      #  ORCHESTRA_USER:
+      #  ORCHESTRA_UID:
+      #  ORCHESTRA_GID:
+      #  DOCKER_GID:
+      #  FLASK_PORT:
+    ports:
+      - 5555:5555
+    command: celery -A orchestra.webservice.app.celery flower --broker=redis://redis:6379/0
+ 
+    environment:
+      - ORCHESTRA_BRANCH=$ORCHESTRA_BRANCH
+      - ORCHESTRA_HOSTNAME=$ORCHESTRA_HOSTNAME
+      - ORCHESTRA_USER=orchestra
+      - ORCHESTRA_UID=$ORCHESTRA_UID
+      - ORCHESTRA_GID=$ORCHESTRA_GID
+      - DOCKER_GID=$DOCKER_GID
+      - POSTGRESQL_USER=orchestra
+      - POSTGRESQL_PASSWORD=orchestra
+      - POSTGRESQL_DB=orchestra
+      - POSTGRESQL_HOSTNAME=postgresql
+      - POSTGRESQL_PORT=5432
+      - REDIS_HOSTNAME=redis
+      - REDIS_PORT=6379
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - FLASK_APP=orchestra.webservice
+      - FLASK_DEV=dev
+      - FLASK_HOST=0.0.0.0
+      - FLASK_PORT=5000
+      - ORCHESTRA_PORT=$FLASK_PORT
+ 
+ 
+    depends_on:
+      - redis
+  
+  postgresql:
+    image: postgres
+    restart: unless-stopped
+    #hostname: orchestra_db
+    #env_file:
+    #  - ../orchestra_env.sh
+    environment:
+      - POSTGRES_USER=orchestra
+      - POSTGRES_PASSWORD=orchestra
+      - POSTGRES_DB=orchestra
+    volumes:
+      - /var/lib/orchestra/data:/var/lib/postgresql/data
+
+    
+  orchestra:
+    build:
+      context: build_orchestra
+      dockerfile: Dockerfile
+      args:
+        ORCHESTRA_BRANCH:
+        ORCHESTRA_USER:
+        ORCHESTRA_UID:
+        ORCHESTRA_GID:
+        DOCKER_GID:
+        FLASK_PORT:
+    privileged: true
+    #env_file:
+    #  - ../orchestra_env.sh
+    environment:
+      - ORCHESTRA_HOSTNAME=$ORCHESTRA_HOSTNAME
+      - ORCHESTRA_BRANCH=$ORCHESTRA_BRANCH
+      - ORCHESTRA_USER=orchestra
+      - ORCHESTRA_UID=$ORCHESTRA_UID
+      - ORCHESTRA_GID=$ORCHESTRA_GID
+      - DOCKER_GID=$DOCKER_GID
+
+      - POSTGRESQL_USER=orchestra
+      - POSTGRESQL_PASSWORD=orchestra
+      - POSTGRESQL_DB=orchestra
+      - POSTGRESQL_HOSTNAME=postgresql
+      - POSTGRESQL_PORT=5432
+
+      - REDIS_HOSTNAME=redis
+      - REDIS_PORT=6379
+
+      - FLASK_APP=orchestra.webservice
+      - FLASK_DEV=dev
+      - FLASK_HOST=0.0.0.0
+      - FLASK_PORT=$FLASK_PORT
+
+    ports:
+      - $FLASK_PORT:$FLASK_PORT
+    depends_on:
+      - redis
+      - postgresql
+      - dashboard
+    volumes:
+      - /var/lib/orchestra:/var/lib/orchestra
+      - /var/run/docker.sock:/var/run/docker.sock
