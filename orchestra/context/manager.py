@@ -30,7 +30,7 @@ class ContextManager:
             self.client.containers.prune()
             self.client.images.prune()
         except docker.errors.APIError as e:
-            print("APIError : {e}")
+            print(f"Docker API error: {e}")
 
         self.close_client()
 
@@ -84,7 +84,7 @@ class ContextManager:
             try:
                 self.client.images.prune()
             except docker.errors.APIError as e:
-                print("Prune is already running: {e}.")
+                print(f"Docker API error: {e}")
 
             self.close_client()
 
@@ -97,7 +97,6 @@ class ContextManager:
     def run(self, context, command, output_dir):
         """Execute the module in its container
         """
-        print(f"In run : {context}")
         self.open_client()
         # create the mount
         m = docker.types.Mount(target="/output", source=os.path.abspath(output_dir), type="bind")
@@ -144,7 +143,6 @@ if __name__=="__main__":
     # build a context
     cmanager = ContextManager()
     context = cmanager.build(context)
-    print("Context ID : {}".format(context.id))
 
     # run a command
     cmd = "python -c \'import numpy as np\nprint(np.__version__)\'"

@@ -371,7 +371,7 @@ class TaskView(ModelView):
     def delete_view(self):
         task_id = request.args["id"]
         task = Task.query.get(task_id)
-        if task.status in ["done", "terminated"]:
+        if task.status in ["done", "terminated", "error"]:
             super().delete_model(task)
             flash(gettext('Task was successfully deleted.'), 'success')
 
