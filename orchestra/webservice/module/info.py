@@ -1,5 +1,6 @@
 import os
 import json
+from datetime import datetime
 
 from orchestra.context import PythonRequirements, PythonContext
 
@@ -146,4 +147,69 @@ class ModuleInfo:
         if self.metadata["install"]["post_process"] is None:
             return []
         return self.metadata["install"]["post_process"]
+    def output_is_timeseries(self):
+        return self.metadata["output"]["type"] == "timeseries"
+    def output_is_timetable(self):
+        return self.metadata["output"]["type"] == "timetable"
+    def output_is_catalog(self):
+        return self.metadata["output"]["type"] == "catalog"
+    def output_filename(self):
+        return self.metadata["output"]["filename"]
+
+    def catalog_classes(self):
+        if "classmap" in self.metadata["output"]:
+            return self.metadata["output"]["classmap"]
+        return {f"cls_{i}":i for i in range(10)}
+    def catalog_class_colors(self):
+        if "colormap" in self.metadata["output"]:
+            return self.metadata["output"]["colormap"]
+        default_colors = [[241,196,15],
+                [26, 188, 156],
+                [39, 176, 96],
+                [41, 128, 185],
+                [155, 89, 182],
+                [192, 57, 43],
+                [211, 84, 0],
+                [127, 140, 141],
+                [44, 62, 80],
+                [0, 0, 255]]
+        class_names = self.catalog_classes()
+        cols = {}
+        for k,v in class_names.items():
+            cols[k] = default_colors[v]
+        return cols
+    def catalog_class_description(self):
+        class_names = self.catalog_classes()
+        class_colors = self.catalog_class_colors()
+        n_classes = len(class_names)
+        print("Classes : ", n_classes, len(class_names), len(class_colors))
+        class_desc = []
+        for k,n in class_names.items():
+            class_desc.append(f"{n} : {k} {class_colors[k]}")
+        return " - ".join(class_desc)
+        
+    def header(self, start_date=None, stop_date=None):
+        lines = [f"# Name: {self.metadata['name']};"]
+        lines += ["# Description:"]
+        lines += ["# "+l+";" for l in self.metadata["description"].split("\n")]
+        if start_date:
+            lines += [f"# ListStartDate: {start_date}"]
+        else:
+            lines += ["# ListStartDate:"]
+        if stop_date:
+            lines += [f"# ListStopDate: {stop_date}"]
+        else:
+            lines += ["# ListStopDate:"]
+        lines += ["# Contact: CDPP"]
+        lines += ["# Historic: ;"]
+        lines += [f"# Creation Date: {datetime.now().strftime('%Y-%m-%dT%H:%M:%S')};"]
+        lines += [f"# Parameter 1: id:param_0; name:classes; size:1; type:string; unit:; description:{self.catalog_class_description()}; ucd:; utype:;"]
+        return "\n".join(lines) + "\n"
+
+
+
+
+
+
+
 
