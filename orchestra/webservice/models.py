@@ -42,6 +42,12 @@ class Module(db.Model):
     
     tasks = db.relationship("Task", backref=db.backref("module", lazy=True))
 
+    def output_is_catalog(self):
+        return json.loads(self.output)["type"] == "catalog"
+
+    def output_filename(self):
+        return json.loads(self.output)["filename"]
+
     def __repr__(self):
         return f"Module(id={self.id}, name={self.name})"
 

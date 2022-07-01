@@ -225,6 +225,29 @@ class ModuleManager:
         """
         return Module.query.get(module_id).context_id
 
+    def prepend_catalog_header(self, task, module):
+        """Add catalog header to output file
+        """
+        task_dir = self.get_task_dir(task.id)
+        output_filename = os.path.join(task_dir, module.output_filename())
+
+        # start and stop dates of the catalog
+        start, stop = None, None
+        content = None
+        with open(output_filename, "r") as f:
+            content = f.read()
+            lines = [l for l in content.split("\n") if len(l)]
+            print("LINES ", len(lines))
+            if len(lines):
+                start = lines[0].split(" ")[0]
+                stop = lines[-1].split(" ")[1]
+
+
+
+        with open(output_filename, "w") as f:
+            f.seek(0)
+            f.write(module.header(start_date=start, stop_date=stop)+content)
+
     def run_module(self, task, verbose=False):
         """This function is called by the process in charge of executing the module. Code is executed
         in a new process
@@ -254,6 +277,9 @@ class ModuleManager:
             task["status"] = TaskStatus.ERROR
         else:
             task["status"] = TaskStatus.DONE
+            # if the output is a catalog file then prepend the header
+            if module.output_is_catalog():
+                self.prepend_catalog_header(task, module)
 
         task["execution_log"] = result["log"]
         print("Log type ", type(result["log"]))
