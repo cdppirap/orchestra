@@ -188,10 +188,16 @@ class ModuleInfo:
             class_desc.append(f"{n} : {k} {class_colors[k]}")
         return " - ".join(class_desc)
         
-    def header(self, start_date=None, stop_date=None):
+    def header(self, start_date=None, stop_date=None, catalog=False):
         lines = [f"# Name: {self.metadata['name']};"]
         lines += ["# Description:"]
         lines += ["# "+l+";" for l in self.metadata["description"].split("\n")]
+        if catalog:
+            lines += ["# ;"]
+            lines += ["# Classes: ;"]
+            class_names = self.catalog_classes()
+            for k,v in class_names.items():
+                lines += [f"# * {v}: {k};"]
         if start_date:
             lines += [f"# ListStartDate: {start_date}"]
         else:
@@ -203,7 +209,8 @@ class ModuleInfo:
         lines += ["# Contact: CDPP"]
         lines += ["# Historic: ;"]
         lines += [f"# Creation Date: {datetime.now().strftime('%Y-%m-%dT%H:%M:%S')};"]
-        lines += [f"# Parameter 1: id:param_0; name:classes; size:1; type:string; unit:; description:{self.catalog_class_description()}; ucd:; utype:;"]
+        if catalog:
+            lines += [f"# Parameter 1: id:param_0; name:classes; size:1; type:string; unit:; description:{self.catalog_class_description()}; ucd:; utype:;"]
         return "\n".join(lines) + "\n"
 
 

@@ -246,7 +246,7 @@ class ModuleManager:
 
         with open(output_filename, "w") as f:
             f.seek(0)
-            f.write(module.header(start_date=start, stop_date=stop)+content)
+            f.write(module.header(start_date=start, stop_date=stop, catalog=module.output_is_catalog())+content)
 
     def run_module(self, task, verbose=False):
         """This function is called by the process in charge of executing the module. Code is executed
@@ -278,7 +278,7 @@ class ModuleManager:
         else:
             task["status"] = TaskStatus.DONE
             # if the output is a catalog file then prepend the header
-            if module.output_is_catalog():
+            if module.output_is_catalog() or module.output_is_timetable():
                 self.prepend_catalog_header(task, module)
 
         task["execution_log"] = result["log"]
