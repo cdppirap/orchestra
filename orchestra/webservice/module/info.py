@@ -157,11 +157,13 @@ class ModuleInfo:
         return self.metadata["output"]["filename"]
 
     def catalog_classes(self):
-        if "classes" in self.metadata["output"]:
-            return self.metadata["output"]["classes"]
-        return [f"cls_{i}" for i in range(10)]
+        if "classmap" in self.metadata["output"]:
+            return self.metadata["output"]["classmap"]
+        return {f"cls_{i}":i for i in range(10)}
     def catalog_class_colors(self):
-        return [[241,196,15],
+        if "colormap" in self.metadata["output"]:
+            return self.metadata["output"]["colormap"]
+        default_colors = [[241,196,15],
                 [26, 188, 156],
                 [39, 176, 96],
                 [41, 128, 185],
@@ -171,19 +173,24 @@ class ModuleInfo:
                 [127, 140, 141],
                 [44, 62, 80],
                 [0, 0, 255]]
+        class_names = self.catalog_classes()
+        cols = {}
+        for k,v in class_names.items():
+            cols[k] = default_colors[v]
+        return cols
     def catalog_class_description(self):
         class_names = self.catalog_classes()
         class_colors = self.catalog_class_colors()
         n_classes = len(class_names)
-        class_desc = [f"{i} : {cn} {cc}" for i, cn, cc in zip(range(n_classes), class_names, class_colors)]
+        print("Classes : ", n_classes, len(class_names), len(class_colors))
+        class_desc = []
+        for k,n in class_names.items():
+            class_desc.append(f"{n} : {k} {class_colors[k]}")
         return " - ".join(class_desc)
-
-
         
     def header(self, start_date=None, stop_date=None):
         lines = [f"# Name: {self.metadata['name']};"]
         lines += ["# Description:"]
-        lines += ["# Prediction from:;"]
         lines += ["# "+l+";" for l in self.metadata["description"].split("\n")]
         if start_date:
             lines += [f"# ListStartDate: {start_date}"]
@@ -197,7 +204,7 @@ class ModuleInfo:
         lines += ["# Historic: ;"]
         lines += [f"# Creation Date: {datetime.now().strftime('%Y-%m-%dT%H:%M:%S')};"]
         lines += [f"# Parameter 1: id:param_0; name:classes; size:1; type:string; unit:; description:{self.catalog_class_description()}; ucd:; utype:;"]
-        return "\n".join(lines)
+        return "\n".join(lines) + "\n"
 
 
 
