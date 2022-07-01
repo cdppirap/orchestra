@@ -236,11 +236,11 @@ class ModuleManager:
         content = None
         with open(output_filename, "r") as f:
             content = f.read()
-            lines = [l for l in content.split("\n") if len(l)]
-            print("LINES ", len(lines))
+            lines = [l for l in content.split("\n") if len(l) and not l.startswith("#")]
             if len(lines):
                 start = lines[0].split(" ")[0]
                 stop = lines[-1].split(" ")[1]
+            content = "\n".join(lines)
 
 
 
