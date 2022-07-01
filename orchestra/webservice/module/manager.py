@@ -279,10 +279,13 @@ class ModuleManager:
             task["status"] = TaskStatus.DONE
             # if the output is a catalog file then prepend the header
             if module.output_is_catalog() or module.output_is_timetable():
-                self.prepend_catalog_header(task, module)
+                try:
+                    self.prepend_catalog_header(task, module)
+                except:
+                    task["status"] = TaskStatus.ERROR
+                    result["log"] = "Error in header creation, malformed output data."
 
         task["execution_log"] = result["log"]
-        print("Log type ", type(result["log"]))
 
         # terminate the task at this point
         task["stop"]=time.time()
