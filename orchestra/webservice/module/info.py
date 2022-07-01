@@ -181,10 +181,10 @@ class ModuleInfo:
 
         
     def header(self, start_date=None, stop_date=None):
-        lines = [f"# Name: {self.metadata['name']}"]
+        lines = [f"# Name: {self.metadata['name']};"]
         lines += ["# Description:"]
         lines += ["# Prediction from:;"]
-        lines += ["# "+l for l in self.metadata["description"].split("\n")]
+        lines += ["# "+l+";" for l in self.metadata["description"].split("\n")]
         if start_date:
             lines += [f"# ListStartDate: {start_date}"]
         else:
